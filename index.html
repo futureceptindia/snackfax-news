@@ -400,6 +400,123 @@ nav.main .fb{display:inline-block;background:var(--green);color:#fff;font-size:8
   .wall .inc{grid-template-columns:1fr}
 }
 
+
+/* ===================== REAL MOBILE (not the preview frame) ===================== */
+.mobnav{display:none}
+@media (max-width:760px){
+  body{padding-bottom:0}
+  .proto{font-size:11px;gap:7px;padding:6px 10px}
+  .proto b,.proto .hint{display:none}
+  .proto .seg button{padding:4px 9px;font-size:11px}
+
+  /* masthead collapses to an app bar + scrolling section rail */
+  header.top{top:30px}
+  header.top .wrap{padding:0 14px}
+  header.top .bar{gap:10px;padding:10px 0 8px}
+  .logo{font-size:21px}
+  .logo small{font-size:6.5px;letter-spacing:.1em}
+  header.top .bar .right{gap:8px}
+  header.top .bar .btn-sub{padding:7px 13px;font-size:12.5px}
+  header.top .bar .signin{display:none}
+  .icon-btn{width:30px;height:30px}
+  nav.main{justify-content:flex-start;gap:16px;font-size:10.5px;letter-spacing:.1em;
+    padding:0 0 0 0;-webkit-overflow-scrolling:touch}
+  nav.main button{padding:10px 0 9px}
+
+  .ticker .wrap{height:32px;gap:9px;font-size:12px}
+  .ticker .wrap>span:last-child{display:none}
+
+  .adslot .in{padding:10px 14px}
+  .adslot .unit{height:62px;font-size:11.5px}
+  .ad-inline .unit{padding:16px;font-size:12px}
+
+  .wrap{padding:0 14px}
+  .hero{grid-template-columns:1fr;gap:12px;padding:14px 0}
+  .big{min-height:330px;padding:56px 16px 16px}
+  .big h1{font-size:23px}
+  .big p{font-size:13.5px;margin-bottom:14px}
+  .big .toprow{top:14px;left:16px;right:16px}
+  .stack{grid-template-rows:none;gap:12px}
+  .mini{min-height:130px}
+  .mini h3{font-size:16px}
+  .cols{grid-template-columns:1fr;gap:20px}
+  .grid4,.grid3{grid-template-columns:1fr 1fr;gap:12px}
+  .nums{grid-template-columns:1fr 1fr}
+  .sec-head h2{font-size:20px}
+  .story .ph{height:96px}
+  .story h3{font-size:14px}
+  .chips{gap:8px;padding-bottom:14px}
+  .chip{min-width:70px;padding:10px 6px;font-size:11.5px}
+
+  .fmt{padding:16px}
+  .deck{max-width:100%;height:265px}
+  .brief .art{width:72px;height:72px;font-size:11px}
+  .reel{gap:10px}
+  .short{width:148px;height:262px}
+
+  .rowcard{gap:12px;padding:14px 0}
+  .rowcard .th{width:100px;height:76px}
+  .rowcard h3{font-size:16px}
+  .rowcard p{display:none}
+
+  .cat-hero{border-radius:0;margin:0 -14px;padding:30px 18px}
+  .cat-hero h1{font-size:27px;letter-spacing:.02em}
+  .cat-hero p{font-size:13.5px}
+  .cat-latest{font-size:23px}
+  .catrow{grid-template-columns:1fr 96px;gap:12px;padding:18px 0}
+  .catrow h3{font-size:16.5px}
+  .catrow p.dk,.catrow .rf{display:none}
+
+  .art h1{font-size:26px}
+  .art .dek{font-size:16px}
+  .art-hero{height:200px}
+  .art p.body{font-size:17px;line-height:1.66}
+  .pullq{font-size:18px}
+  .byline{flex-wrap:wrap;gap:8px}
+  .byline .acts{margin-left:0;width:100%}
+
+  .wall{padding:22px 16px}
+  .wall h3{font-size:21px}
+  .wall .inc{grid-template-columns:1fr;gap:12px}
+  .wall .cta{flex-direction:column}
+  .wall .primary,.wall .ghost{width:100%;text-align:center}
+
+  .shorts-page{height:calc(100vh - 230px);min-height:430px;max-width:none;margin:0 -14px;border-radius:0}
+  .sp{padding:18px 66px 22px 18px}
+  .sp h3{font-size:19px}
+
+  .plans{grid-template-columns:1fr}
+  .modal{padding:20px}
+  .overlay{padding:60px 14px}
+  footer{padding:28px 0 96px}
+  footer .cols4{grid-template-columns:1fr;gap:20px}
+
+  /* bottom app nav */
+  .mobnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:250;background:#fff;
+    border-top:1px solid var(--line);padding:7px 2px calc(7px + env(safe-area-inset-bottom));
+    box-shadow:0 -2px 14px rgba(15,17,21,.07)}
+  .mobnav button{flex:1;text-align:center;font-size:10px;font-weight:600;color:var(--ink-3)}
+  .mobnav button em{display:block;font-style:normal;font-size:17px;margin-bottom:2px}
+  .mobnav button.on{color:var(--red)}
+  .site{padding-bottom:64px}
+
+  /* the desktop-frame preview is pointless on a real phone */
+  body.m .stage{display:none}
+  body.m > .site{display:block}
+}
+@media (max-width:560px){
+  .grid4,.grid3,.nums{grid-template-columns:1fr}
+  .story .ph{height:150px}
+  .story h3{font-size:16px}
+}
+
+
+/* grid/flex children must be allowed to shrink, or scrolling strips push the page wide */
+.hero>*,.cols>*,.grid4>*,.grid3>*,.stack>*,.secblock>*,.rowcard>*,.catrow>*,.brief>*{min-width:0}
+nav.main,.tk,.chips,.reel,.ticker .wrap>*{min-width:0;max-width:100%}
+.big h1,.mini h3,.story h3,.rowcard h3,.catrow h3,.art h1,.feed p{overflow-wrap:anywhere}
+html,body{overflow-x:hidden}
+
 </style>
 </head>
 <body>
@@ -436,6 +553,13 @@ nav.main .fb{display:inline-block;background:var(--green);color:#fff;font-size:8
   <div class="adslot"><div class="in"><div class="lb">Advertisement</div>
     <div class="unit">728 × 90 — your brand in front of 40,000 food &amp; retail operators</div></div></div>
   <main id="appSlot"></main>
+  <nav class="mobnav" id="mobNav">
+    <button class="on" data-go="home"><em>⌂</em>Home</button>
+    <button data-go="shorts"><em>⊞</em>Shorts</button>
+    <button data-go="videos"><em>▷</em>Videos</button>
+    <button data-go="podcasts"><em>🎧</em>Audio</button>
+    <button data-go="saved"><em>🔖</em>Saved</button>
+  </nav>
 </div>
 
 <!-- mobile shell -->
@@ -1035,6 +1159,7 @@ function render(){
   $$('#mainNav button').forEach(b=>b.classList.toggle('on', b.dataset.go===('section:'+arg) || (v==='home'&&b.dataset.go==='home') || b.dataset.go===v));
   $$('#phNav button').forEach(b=>b.classList.toggle('on', b.dataset.go===v || (v==='home'&&b.dataset.go==='home')));
   const sb=$('#signBtn'); if(sb)sb.textContent=S.member?'My account':'Sign In';
+  $$('#mobNav button').forEach(b=>b.classList.toggle('on', b.dataset.go===v || (v==='home'&&b.dataset.go==='home')));
   wire();
 }
 
@@ -1249,6 +1374,15 @@ $$('#viewSeg button').forEach(b=>b.onclick=()=>{
 
 /* boot */
 $('#appSlot').appendChild($('#app'));
+/* a real phone gets the real site, not the preview frame */
+function syncViewport(){
+  if(innerWidth<=760&&document.body.classList.contains('m')){
+    document.body.classList.remove('m');
+    $('#appSlot').appendChild($('#app'));
+    $$('#viewSeg button').forEach(x=>x.classList.toggle('on',x.dataset.v==='d'));
+  }
+}
+addEventListener('resize',syncViewport); syncViewport();
 go('home');
 </script>
 </body>
