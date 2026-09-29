@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snackfax</title>
+<style>
+:root{
+  --red:#E8202A; --ink:#0F1115; --ink-2:#3C424E; --ink-3:#7B8394;
+  --line:#E6E8EC; --bg:#fff; --soft:#F6F7F9; --soft-red:#FDEEEF; --soft-green:#EDF7F1;
+  --green:#1B8A54; --purple:#6D3BD6; --blue:#1B63C4;
+  --r:14px; --shadow:0 1px 2px rgba(15,17,21,.06), 0 8px 24px rgba(15,17,21,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;color:var(--ink);background:#EFF1F4}
+img{display:block;max-width:100%}
+button,input{font:inherit}
+button{cursor:pointer;border:0;background:none;color:inherit;text-align:left}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;padding:5px 10px;border-radius:6px;background:var(--red);color:#fff}
+.tag.g{background:#12A05C}.tag.y{background:#F2B705;color:#3a2b00}.tag.p{background:#6D3BD6}
+.tag.b{background:#1B63C4}.tag.k{background:rgba(255,255,255,.18);backdrop-filter:blur(6px)}
+.tag.o{background:#fff;color:var(--ink-2);border:1px solid var(--line)}
+.lbl{font-size:11px;font-weight:800;letter-spacing:.09em;color:var(--red);margin-bottom:6px}
+
+/* prototype bar */
+.proto{position:sticky;top:0;z-index:300;background:#111319;color:#fff;display:flex;gap:10px;align-items:center;padding:8px 16px;font-size:12.5px}
+.proto b{letter-spacing:.06em;text-transform:uppercase;font-size:11px;color:#8b93a4}
+.proto .seg{display:flex;background:#1E212A;border-radius:999px;padding:3px}
+.proto .seg button{padding:5px 12px;border-radius:999px;color:#b8bfcc}
+.proto .seg button.on{background:#fff;color:#111}
+.proto .hint{margin-left:auto;color:#6d7484}
+
+/* ticker */
+.ticker{background:var(--ink);color:#fff;font-size:13px}
+.ticker .wrap{display:flex;align-items:center;gap:14px;height:38px}
+.livedot{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:11px;letter-spacing:.08em;color:#fff;background:var(--red);padding:3px 9px;border-radius:999px;flex:none}
+.livedot i{width:6px;height:6px;border-radius:50%;background:#fff;animation:blip 1.2s infinite}
+@keyframes blip{50%{opacity:.25}}
+.tk{flex:1;overflow:hidden;white-space:nowrap;position:relative;height:20px}
+.tk button{position:absolute;inset:0;opacity:0;transition:.4s;transform:translateY(8px);color:#D7DBE3;white-space:nowrap}
+.tk button.on{opacity:1;transform:none}
+.tk b{color:#fff}
+
+/* header */
+header.top{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:33px;z-index:200}
+.top .wrap{display:flex;align-items:center;gap:24px;height:64px}
+.logo{font-weight:900;font-size:25px;letter-spacing:-.02em;color:var(--red);line-height:1}
+.logo small{display:block;font-size:8.2px;letter-spacing:.12em;color:var(--ink);font-weight:700;margin-top:2px}
+nav.main{display:flex;gap:18px;font-weight:600;font-size:14.5px;color:var(--ink-2)}
+nav.main button{padding:22px 0;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+nav.main button.on{color:var(--red);border-color:var(--red)}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.btn-sub{background:var(--red);color:#fff;font-weight:700;padding:9px 18px;border-radius:999px;font-size:14px}
+.icon-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--ink-2)}
+.icon-btn:hover{background:var(--soft)}
+.prog{position:fixed;top:0;left:0;height:3px;background:var(--red);z-index:400;width:0;transition:width .1s}
+
+/* generic bits */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow)}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin:26px 0 14px}
+.sec-head h2{font-size:26px;letter-spacing:-.02em;margin:0}
+.sec-head button.all{margin-left:auto;font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cols{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
+.crumb{font-size:13px;color:var(--ink-3);padding:16px 0 0}
+.crumb button{color:var(--red);font-weight:600}
+
+.story{background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;width:100%;text-align:left}
+.story .ph{height:118px;background:var(--img) center/cover;background-color:#DDE1E6}
+.story .bd{padding:11px 12px 12px;display:flex;flex-direction:column;flex:1}
+.story h3{font-size:15px;line-height:1.28;margin:8px 0 0;letter-spacing:-.01em}
+.story .foot{display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:12px;font-size:12.5px;color:var(--ink-3)}
+.story .hrow{display:flex;justify-content:space-between;align-items:center}
+.story .hrow .t{font-size:12px;color:var(--ink-3)}
+.story:hover h3{color:var(--red)}
+.bm{margin-left:auto}.bm.on{color:var(--red)}
+
+.rowcard{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.rowcard .tx{flex:1}
+.rowcard h3{margin:7px 0 6px;font-size:18px;line-height:1.3;letter-spacing:-.01em}
+.rowcard p{margin:0 0 8px;font-size:14px;color:var(--ink-2)}
+.rowcard .mt{font-size:12.5px;color:var(--ink-3)}
+.rowcard .th{width:170px;height:112px;border-radius:10px;background:var(--img) center/cover;background-color:#DDE1E6;flex:none}
+.rowcard:hover h3{color:var(--red)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.55fr 1fr .85fr;gap:16px;padding:20px 0}
+.big{position:relative;min-height:470px;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:26px;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);width:100%;
+  background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.05) 35%,rgba(0,0,0,.82)),var(--img) center/cover;background-color:#2a2d34}
+.big .toprow{position:absolute;top:22px;left:26px;right:26px;display:flex;align-items:center}
+.big .stamp{margin-left:auto;font-size:12.5px;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);padding:5px 11px;border-radius:999px}
+.big h1{font-size:40px;line-height:1.08;letter-spacing:-.02em;margin:0 0 12px;max-width:16ch}
+.big p{margin:0 0 20px;max-width:46ch;color:#DDE1E8;font-size:15px}
+.play{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);color:#fff;padding:9px 18px 9px 9px;border-radius:999px;font-weight:600}
+.play i{width:32px;height:32px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-style:normal;font-size:12px;padding-left:2px}
+.dots{display:flex;gap:5px;position:absolute;bottom:14px;left:26px}
+.dots b{width:44px;height:3px;border-radius:2px;background:rgba(255,255,255,.28)}
+.dots b.on{background:var(--red)}
+.stack{display:grid;grid-template-rows:repeat(3,1fr);gap:16px}
+.mini{position:relative;color:#fff;padding:14px;display:flex;flex-direction:column;justify-content:space-between;min-height:145px;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);width:100%;
+  background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.75)),var(--img) center/cover;background-color:#2a2d34}
+.mini .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.mini h3{font-size:17px;line-height:1.2;margin:8px 0;letter-spacing:-.01em}
+.mini .meta,.pill-time{font-size:12px;color:#E4E7EC}
+.mini .meta i{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.2);display:inline-grid;place-items:center;font-style:normal;font-size:9px;vertical-align:middle;margin-right:5px}
+
+.latest{background:var(--soft-red);border-radius:var(--r);padding:18px 18px 16px}
+.latest h4{margin:0 0 14px;font-size:16px;display:flex;align-items:center;gap:7px}
+.latest h4 span{margin-left:auto;font-size:12.5px;color:var(--ink-2);font-weight:500}
+.feed{position:relative;padding-left:14px}
+.feed:before{content:"";position:absolute;left:3px;top:6px;bottom:18px;width:1px;background:#F3C6C9}
+.feed .it{position:relative;padding:0 0 15px;display:block;width:100%}
+.feed .it:before{content:"";position:absolute;left:-14px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px var(--soft-red)}
+.feed .it.new:before{animation:blip 1.4s infinite}
+.feed time{display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:3px}
+.feed p{margin:0;font-size:14.5px;font-weight:600;line-height:1.35}
+.feed .it:hover p{color:var(--red)}
+.more{width:100%;border:1px solid #F0B9BD;color:var(--red);font-weight:700;padding:9px;border-radius:9px;font-size:13.5px;text-align:center}
+
+/* chips */
+.chips{display:flex;gap:10px;overflow-x:auto;padding:4px 0 18px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-width:78px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 8px;text-align:center;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.chip em{display:block;font-size:17px;font-style:normal;margin-bottom:5px}
+.chip.on{background:var(--soft-red);border-color:#F4C3C6;color:var(--red)}
+
+/* format blocks */
+.fmt{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:20px;margin-bottom:20px}
+.fmt h2{margin:0 0 3px;font-size:22px;letter-spacing:-.02em}
+.fmt .sub{margin:0 0 16px;color:var(--ink-3);font-size:13.5px}
+
+.brief{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.brief .art{width:96px;height:96px;border-radius:12px;background:linear-gradient(135deg,var(--red),#7A0E15);color:#fff;display:grid;place-content:center;text-align:center;font-weight:800;font-size:13px;line-height:1.2;flex:none}
+.brief .mid{flex:1;min-width:250px}
+.wave{display:flex;align-items:flex-end;gap:2px;height:38px;margin:8px 0;width:100%}
+.wave b{flex:1;background:#E3E6EB;border-radius:2px}
+.wave b.p{background:var(--red)}
+.ctrls{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-3);flex-wrap:wrap}
+.ctrls .pp{width:42px;height:42px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:14px}
+.speed{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.chapters{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chapters button{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--ink-2)}
+.chapters button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.reel{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.reel::-webkit-scrollbar{display:none}
+.short{flex:none;width:168px;height:296px;border-radius:12px;scroll-snap-align:start;position:relative;color:#fff;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:var(--shadow);
+  background:linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.8)),var(--img) center/cover;background-color:#2a2d34}
+.short h4{margin:0;font-size:14px;line-height:1.25}
+.short .dur{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700}
+.short .st{font-size:11.5px;color:#D9DDE4;margin-top:6px}
+.short.live:before{content:"● LIVE";position:absolute;top:10px;left:10px;background:var(--red);font-size:10px;font-weight:800;padding:3px 7px;border-radius:5px}
+
+.ask{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--soft)}
+.ask .q{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ask .q button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:13px;color:var(--ink-2)}
+.ask .q button:hover{border-color:var(--red);color:var(--red)}
+.ans{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:14px;min-height:64px}
+.ans .k{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--purple);margin-bottom:6px}
+.ans ul{margin:8px 0 0;padding-left:18px;color:var(--ink-2)}
+.ans .src{margin-top:10px;font-size:12px;color:var(--ink-3);border-top:1px dashed var(--line);padding-top:8px}
+.typing b{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ink-3);margin-right:3px;animation:bob .9s infinite}
+.typing b:nth-child(2){animation-delay:.15s}.typing b:nth-child(3){animation-delay:.3s}
+@keyframes bob{50%{transform:translateY(-5px)}}
+
+.deck{position:relative;height:250px;max-width:400px;margin:0 auto}
+.deck .sw{position:absolute;inset:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);transition:.3s;display:flex;flex-direction:column}
+.deck .sw h3{margin:10px 0 8px;font-size:20px;line-height:1.25}
+.deck .sw p{margin:0;color:var(--ink-2);font-size:14px}
+.deck .sw .n{margin-top:auto;font-size:12px;color:var(--ink-3)}
+.deck-ctrl{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.deck-ctrl button{border:1px solid var(--line);border-radius:999px;padding:8px 18px;font-weight:600;font-size:13.5px;background:#fff}
+.deck-ctrl .save{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.poll .opt{position:relative;border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:9px;font-size:14px;font-weight:600;overflow:hidden;background:#fff;width:100%;display:flex}
+.poll .opt .fill{position:absolute;inset:0;width:0;background:var(--soft-red);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.poll .opt span{position:relative}
+.poll .opt .pct{margin-left:auto;color:var(--red);opacity:0;transition:.3s}
+.poll.voted .opt .pct{opacity:1}
+.poll .tot{font-size:12.5px;color:var(--ink-3)}
+
+.live-log{border-left:2px solid var(--line);padding-left:16px;margin-top:4px}
+.live-log .e{position:relative;padding-bottom:16px}
+.live-log .e:before{content:"";position:absolute;left:-21px;top:5px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid var(--ink-3)}
+.live-log .e.hot:before{background:var(--red);border-color:var(--red)}
+.live-log time{font-size:11.5px;font-weight:700;color:var(--ink-3);letter-spacing:.04em}
+.live-log p{margin:3px 0 0;font-size:14px}
+.live-log .e.fresh{animation:slidein .5s}
+@keyframes slidein{from{opacity:0;transform:translateY(-6px)}}
+
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.num{border:1px solid var(--line);border-radius:12px;padding:14px}
+.num b{display:block;font-size:26px;letter-spacing:-.02em}
+.num i{font-style:normal;font-size:12px;font-weight:700}
+.num i.up{color:var(--green)}.num i.dn{color:var(--red)}
+.num p{margin:4px 0 0;font-size:12.5px;color:var(--ink-3)}
+
+.vid{border-radius:12px;overflow:hidden;background:#fff;box-shadow:var(--shadow);width:100%;text-align:left}
+.vid .ph{position:relative;height:150px;background:var(--img) center/cover;background-color:#DDE1E6;display:grid;place-items:center;color:#fff;font-size:26px;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.vid .ph .d{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.72);font-size:11.5px;font-weight:700;padding:2px 6px;border-radius:4px}
+.vid .bd{padding:10px 12px 14px}
+.vid h4{margin:0 0 6px;font-size:14.5px;line-height:1.3}
+.vid p{margin:0;font-size:12.5px;color:var(--ink-3)}
+
+/* sidebar */
+.side-card{border-radius:var(--r);padding:18px;color:#fff;background:var(--red)}
+.side-card h3{margin:0 0 4px;font-size:19px;line-height:1.25}
+.side-card p{margin:0 0 12px;font-size:13px;color:#FFD9DB}
+.mailrow{display:flex;background:#fff;border-radius:9px;padding:4px 4px 4px 12px;align-items:center}
+.mailrow input{border:0;outline:0;flex:1;font-size:13.5px}
+.mailrow button{width:34px;height:34px;border-radius:7px;background:var(--ink);color:#fff;display:grid;place-items:center}
+.wa{background:var(--soft-green);border-radius:var(--r);padding:18px;margin-top:16px}
+.wa h3{margin:0 0 6px;font-size:16px}
+.wa p{margin:0 0 12px;font-size:13px;color:var(--ink-2)}
+.wa .jn{border:1px solid #BFE0CD;background:#fff;color:var(--green);font-weight:700;padding:8px 16px;border-radius:8px;font-size:13.5px}
+
+/* article */
+.art-wrap{max-width:720px;margin:0 auto}
+.art-hero{border-radius:var(--r);height:380px;background:var(--img) center/cover;background-color:#DDE1E6;margin:14px 0 22px;box-shadow:var(--shadow)}
+.art h1{font-size:40px;line-height:1.1;letter-spacing:-.025em;margin:12px 0 12px}
+.art .dek{font-size:18px;color:var(--ink-2);margin:0 0 18px}
+.byline{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-3);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:20px;flex-wrap:wrap}
+.byline .av{width:34px;height:34px;border-radius:50%;background:var(--img) center/cover;background-color:#CDD2DA}
+.byline .nm{color:var(--ink);font-weight:700}
+.byline .acts{margin-left:auto;display:flex;gap:8px}
+.byline .acts button{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600}
+.art p.body{font-size:17px;line-height:1.72;margin:0 0 20px;color:#1B1E25}
+.art h2.sub2{font-size:22px;letter-spacing:-.015em;margin:30px 0 12px}
+.keypoints{background:var(--soft);border-left:3px solid var(--red);border-radius:0 12px 12px 0;padding:16px 18px;margin:0 0 24px}
+.keypoints h4{margin:0 0 8px;font-size:12px;letter-spacing:.08em;color:var(--red)}
+.keypoints ul{margin:0;padding-left:18px;font-size:15px;line-height:1.7;color:var(--ink-2)}
+.pullq{border-left:3px solid var(--ink);padding:4px 0 4px 18px;margin:26px 0;font-size:21px;line-height:1.4;letter-spacing:-.01em}
+.listen{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:24px}
+.listen .pp{width:38px;height:38px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;flex:none}
+.listen b{display:block;font-size:14px}.listen span{font-size:12.5px;color:var(--ink-3)}
+
+/* shorts full page */
+.shorts-page{max-width:420px;margin:0 auto;height:calc(100vh - 160px);overflow-y:scroll;scroll-snap-type:y mandatory;border-radius:18px;scrollbar-width:none;box-shadow:var(--shadow)}
+.shorts-page::-webkit-scrollbar{display:none}
+.sp{height:100%;scroll-snap-align:start;position:relative;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:20px 76px 26px 20px;
+  background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.05) 40%,rgba(0,0,0,.85)),var(--img) center/cover;background-color:#2a2d34}
+.sp h3{margin:8px 0 6px;font-size:22px;line-height:1.2}
+.sp p{margin:0;font-size:13.5px;color:#DDE1E8}
+.sp .rail{position:absolute;right:14px;bottom:30px;display:flex;flex-direction:column;gap:18px;text-align:center;font-size:11px}
+.sp .rail button em{display:block;font-style:normal;font-size:21px;margin-bottom:2px}
+.sp .pr{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.2)}
+.sp .pr b{display:block;height:100%;width:38%;background:var(--red)}
+
+/* founders / podcasts */
+.person{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;text-align:left;width:100%}
+.person .av{width:56px;height:56px;border-radius:50%;background:var(--img) center/cover;background-color:#CDD2DA;margin-bottom:10px}
+.person h3{margin:0 0 3px;font-size:16px}
+.person .role{font-size:12.5px;color:var(--ink-3);margin-bottom:8px}
+.person p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.ep{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);align-items:center;width:100%;text-align:left}
+.ep .cv{width:74px;height:74px;border-radius:10px;background:linear-gradient(135deg,var(--red),#7A0E15);color:#fff;display:grid;place-content:center;font-weight:800;font-size:12px;text-align:center;flex:none}
+.ep h3{margin:0 0 4px;font-size:16.5px}
+.ep p{margin:0 0 6px;font-size:13.5px;color:var(--ink-2)}
+.ep .mt{font-size:12.5px;color:var(--ink-3)}
+.ep .go{margin-left:auto;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-weight:600;font-size:13px;flex:none}
+
+/* search / modal */
+.overlay{position:fixed;inset:0;background:rgba(15,17,21,.5);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:90px 20px}
+.overlay.on{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:560px;padding:20px;box-shadow:0 30px 70px rgba(0,0,0,.3)}
+.modal h3{margin:0 0 4px;font-size:20px}
+.modal p.s{margin:0 0 14px;color:var(--ink-3);font-size:13.5px}
+.srch{display:flex;border:1px solid var(--line);border-radius:10px;padding:10px 12px;align-items:center;gap:8px}
+.srch input{border:0;outline:0;flex:1;font-size:16px}
+.sug{margin-top:14px}
+.sug button{display:block;width:100%;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.sug button:hover{color:var(--red)}
+.sug .c{font-size:11.5px;color:var(--ink-3);display:block}
+
+/* footer */
+footer{background:var(--ink);color:#B7BDC9;margin-top:36px;padding:34px 0 40px;font-size:13.5px}
+footer .cols4{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:26px}
+footer h5{color:#fff;margin:0 0 10px;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+footer ul{margin:0;padding:0;list-style:none;line-height:2}
+footer ul button:hover{color:#fff}
+
+/* ---- mobile phone frame ---- */
+.stage{display:none;padding:26px 0 50px;place-items:center}
+body.m .stage{display:grid}
+body.m > .site{display:none}
+.phone{width:400px;max-width:96vw;height:820px;background:#fff;border-radius:44px;border:11px solid #14161B;box-shadow:0 30px 70px rgba(0,0,0,.35);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.ph-status{display:flex;justify-content:space-between;padding:12px 24px 2px;font-size:12.5px;font-weight:700;flex:none}
+.ph-head{display:flex;align-items:center;padding:6px 16px 10px;gap:12px;flex:none;border-bottom:1px solid var(--line)}
+.ph-scroll{flex:1;overflow-y:auto;scrollbar-width:none}
+.ph-scroll::-webkit-scrollbar{display:none}
+.ph-nav{display:flex;border-top:1px solid var(--line);padding:8px 4px 20px;background:#fff;flex:none}
+.ph-nav button{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3);font-weight:600}
+.ph-nav button em{display:block;font-style:normal;font-size:17px;margin-bottom:2px}
+.ph-nav button.on{color:var(--red)}
+/* mobile layout rules applied when app is inside the phone */
+.phone .wrap{padding:0 16px}
+.phone .hero{grid-template-columns:1fr;padding:14px 0;gap:12px}
+.phone .big{min-height:250px;padding:16px}
+.phone .big h1{font-size:22px}.phone .big p{font-size:13px;margin-bottom:14px}
+.phone .big .toprow{top:14px;left:16px;right:16px}
+.phone .stack{grid-template-rows:none;grid-template-columns:1fr;gap:12px}
+.phone .cols,.phone .grid4,.phone .grid3,.phone .nums,.phone footer .cols4{grid-template-columns:1fr}
+.phone .grid4,.phone .nums{grid-template-columns:1fr 1fr}
+.phone nav.main,.phone .ticker,.phone header.top .right .btn-sub{display:none}
+.phone .sec-head h2{font-size:20px}
+.phone .art h1{font-size:26px}.phone .art-hero{height:200px}
+.phone .art p.body{font-size:16px}
+.phone .rowcard .th{width:96px;height:72px}
+.phone .rowcard h3{font-size:15.5px}.phone .rowcard p{display:none}
+.phone .shorts-page{height:660px;border-radius:0;margin:0 -16px}
+.phone .fmt{padding:16px}
+.phone .deck{max-width:100%}
+.phone .overlay{position:absolute;padding:40px 14px}
+
+@media (max-width:1000px){
+  .hero{grid-template-columns:1fr}.cols{grid-template-columns:1fr}
+  .grid4,.nums{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}
+  .big h1{font-size:28px}.art h1{font-size:30px}
+  nav.main{display:none}
+  .rowcard .th{width:110px;height:80px}
+  footer .cols4{grid-template-columns:1fr 1fr}
+}
+
+/* ===== Adweek-style masthead, in Snackfax red-on-white ===== */
+header.top .wrap{display:block;height:auto;padding-top:12px}
+header.top .bar{display:flex;align-items:center;gap:24px;padding-bottom:10px}
+.teaser{display:flex;align-items:center;gap:9px;border:1px solid var(--red);border-radius:4px;padding:8px 13px;max-width:430px;font-size:13.5px;color:var(--ink-2);line-height:1.3}
+.teaser b{color:var(--red);font-weight:800;letter-spacing:.06em;font-size:11px;text-transform:uppercase;white-space:nowrap}
+.teaser:hover{background:var(--soft-red)}
+header.top .bar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+header.top .bar .signin{font-size:13.5px;font-weight:600;color:var(--ink-2)}
+nav.main{display:flex;justify-content:center;gap:28px;border-top:1px solid var(--line);padding-top:0;font-size:12px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;overflow-x:auto;scrollbar-width:none}
+nav.main::-webkit-scrollbar{display:none}
+nav.main button{padding:13px 0 12px;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;color:var(--ink-2)}
+nav.main button:hover{color:var(--red)}
+nav.main button.on{color:var(--red);border-color:var(--red)}
+nav.main .fb{display:inline-block;background:var(--green);color:#fff;font-size:8.5px;letter-spacing:.08em;padding:2px 5px;border-radius:2px;margin-left:5px;vertical-align:1.5px}
+
+/* ===== ad slots ===== */
+.adslot{background:var(--soft);border-bottom:1px solid var(--line)}
+.adslot .in{max-width:1180px;margin:0 auto;padding:14px 20px;text-align:center}
+.adslot .lb{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.adslot .unit{max-width:728px;height:90px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:4px;display:grid;place-items:center;color:var(--ink-3);font-size:12.5px;padding:0 16px}
+.ad-inline{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:20px 0;margin:24px 0;text-align:center}
+.ad-inline .lb{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+.ad-inline .unit{max-width:560px;margin:0 auto;border:1px solid var(--line);border-radius:4px;padding:20px;color:var(--ink-3);font-size:13px;background:#fff}
+
+/* ===== gating ===== */
+.lockchip{display:inline-flex;align-items:center;gap:4px;background:#FDF6E3;color:#A8801A;border:1px solid #EDDCAE;font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border-radius:3px}
+.freechip{display:inline-flex;align-items:center;gap:4px;background:var(--soft-green);color:var(--green);border:1px solid #C6E5D4;font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border-radius:3px}
+.story .foot .lockchip{margin-left:auto}
+.wallfade{height:120px;margin-top:-120px;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 80%);pointer-events:none;position:relative}
+.wall{border:1px solid var(--line);border-top:4px solid var(--red);border-radius:var(--r);padding:30px;text-align:center;margin-bottom:26px;background:#fff;box-shadow:var(--shadow)}
+.wall h3{font-size:25px;line-height:1.25;margin:12px 0 8px;letter-spacing:-.015em}
+.wall p.s{color:var(--ink-2);max-width:46ch;margin:0 auto 20px;font-size:15px}
+.wall .cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.wall .primary{background:var(--red);color:#fff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:999px}
+.wall .ghost{border:1px solid var(--line);font-weight:700;font-size:14px;padding:12px 24px;border-radius:999px}
+.wall .inc{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;border-top:1px solid var(--line);padding-top:20px;text-align:left}
+.wall .inc b{display:block;font-size:14.5px;margin-bottom:3px}
+.wall .inc span{font-size:12.5px;color:var(--ink-2)}
+.wall .note{font-size:12.5px;color:var(--ink-3);margin-top:16px}
+
+/* ===== Adweek-style category page ===== */
+.cat-hero{background:var(--red);color:#fff;text-align:center;padding:42px 20px 38px;border-radius:var(--r);margin-top:16px}
+.cat-hero h1{font-size:44px;letter-spacing:.04em;text-transform:uppercase;margin:0 0 12px;line-height:1;font-weight:900}
+.cat-hero p{max-width:620px;margin:0 auto;font-size:15px;color:#FFD9DB}
+.cat-latest{font-size:30px;font-weight:900;text-transform:uppercase;letter-spacing:.02em;margin:30px 0 0;display:inline-block}
+.cat-latest:after{content:"";display:block;height:4px;background:var(--red);margin-top:5px}
+.catrow{display:grid;grid-template-columns:1fr 230px;gap:26px;padding:24px 0;border-bottom:1px solid var(--line);width:100%;text-align:left;align-items:start}
+.catrow h3{font-size:23px;line-height:1.22;letter-spacing:-.015em;margin:8px 0 8px}
+.catrow:hover h3{color:var(--red)}
+.catrow .by{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+.catrow .by em{font-style:normal;color:var(--ink-3)}
+.catrow p.dk{margin:10px 0 0;font-size:14.5px;color:var(--ink-2)}
+.catrow .rf{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-top:12px;display:inline-block}
+.catrow .th{aspect-ratio:4/3;border-radius:10px;background:var(--img) center/cover;background-color:#DDE1E6}
+
+/* mobile frame tweaks for the new nav */
+.phone header.top .bar{padding-bottom:8px}
+.phone .teaser,.phone .adslot{display:none}
+.phone nav.main{display:flex;justify-content:flex-start;gap:18px;font-size:10.5px;letter-spacing:.1em}
+.phone nav.main button{padding:10px 0 9px}
+.phone .cat-hero{border-radius:0;margin:0 -16px;padding:30px 16px}
+.phone .cat-hero h1{font-size:28px}
+.phone .catrow{grid-template-columns:1fr 100px;gap:14px}
+.phone .catrow h3{font-size:16px}
+.phone .catrow p.dk,.phone .catrow .rf{display:none}
+.phone .wall{padding:22px 18px}
+.phone .wall .inc{grid-template-columns:1fr}
+@media (max-width:1000px){
+  .teaser{display:none}
+  nav.main{display:flex;justify-content:flex-start}
+  .cat-hero h1{font-size:30px}
+  .catrow{grid-template-columns:1fr 120px;gap:14px}
+  .wall .inc{grid-template-columns:1fr}
+}
+
+</style>
+</head>
+<body>
+
+<div class="prog" id="prog"></div>
+
+<div class="proto">
+  <b>Snackfax prototype</b>
+  <div class="seg" id="viewSeg"><button class="on" data-v="d">Desktop</button><button data-v="m">Mobile</button></div>
+  <div class="seg" id="memSeg"><button class="on" data-mem="0">Signed out</button><button data-mem="1">Member</button></div>
+  <span class="hint">Shorts are free · everything else is member-only. Flip the switch to see both.</span>
+</div>
+
+<!-- desktop shell -->
+<div class="site" id="siteShell">
+  <div class="ticker"><div class="wrap">
+    <span class="livedot"><i></i>LIVE</span>
+    <div class="tk" id="tk"></div>
+    <span style="font-size:12px;color:#8b93a4">Updated <b style="color:#fff">just now</b></span>
+  </div></div>
+  <header class="top"><div class="wrap">
+    <div class="bar">
+      <button class="logo" data-go="home">SNACKFAX<small>FOOD. BRANDS. RETAIL. NOW.</small></button>
+      <button class="teaser" data-go="live"><b>Price war:</b> <span>Day 6 of quick commerce cutting to the bone</span></button>
+      <div class="right">
+        <button class="btn-sub" data-go="subscribe">Subscribe</button>
+        <button class="signin" id="signBtn">Sign In</button>
+        <button class="icon-btn" id="openSearch">🔍</button>
+        <button class="icon-btn" data-go="saved">🔖</button>
+      </div>
+    </div>
+    <nav class="main" id="mainNav"></nav>
+  </div></header>
+  <div class="adslot"><div class="in"><div class="lb">Advertisement</div>
+    <div class="unit">728 × 90 — your brand in front of 40,000 food &amp; retail operators</div></div></div>
+  <main id="appSlot"></main>
+</div>
+
+<!-- mobile shell -->
+<div class="stage" id="stage">
+  <div class="phone">
+    <div class="ph-status"><span>9:41</span><span>⬤⬤⬤ ᯤ ▮</span></div>
+    <div class="ph-head">
+      <button class="logo" style="font-size:20px" data-go="home">SNACKFAX<small style="font-size:6.5px">FOOD. BRANDS. RETAIL. NOW.</small></button>
+      <div style="margin-left:auto;display:flex;gap:12px;font-size:17px">
+        <button id="openSearchM">🔍</button><button data-go="saved">🔖</button>
+      </div>
+    </div>
+    <div class="ph-scroll" id="phScroll"></div>
+    <div class="ph-nav" id="phNav">
+      <button class="on" data-go="home"><em>⌂</em>Home</button>
+      <button data-go="videos"><em>▷</em>Videos</button>
+      <button data-go="shorts"><em>⊞</em>Shorts</button>
+      <button data-go="podcasts"><em>🎧</em>Audio</button>
+      <button data-go="saved"><em>🔖</em>Saved</button>
+    </div>
+    <div class="overlay" id="ovM"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov">
+  <div class="modal" id="ovBody"></div>
+</div>
+
+<!-- the app itself (moved between shells) -->
+<div id="app"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const I=n=>`img/${n}.jpg`;
+
+/* ------------------------------------------------ DATA */
+const SECTIONS=[
+  {id:'justin',name:'Just In'},{id:'technology',name:'Technology'},{id:'brands',name:'Brands'},{id:'retail',name:'Retail'},
+  {id:'money',name:'Money'},{id:'trends',name:'Trends'},{id:'founders',name:'Founders'},
+  {id:'videos',name:'Videos'},{id:'podcasts',name:'Podcasts'}
+];
+const CHIPS=[['all','All','▦'],['breaking','Breaking','⚡'],['technology','Technology','⚙'],['brands','Brands','🏷'],['retail','Retail','🏬'],
+  ['money','Money','📊'],['trends','Trends','↗'],['founders','Founders','👥'],['products','Products','📦'],
+  ['policy','Policy','📄'],['global','Global','🌐']];
+const TAGC={MONEY:'',RETAIL:'y',TRENDS:'p','FOUNDER TAKE':'p',BRANDS:'b',POLICY:'b',GLOBAL:'g',BREAKING:'',PRODUCTS:'g','JUST IN':''};
+
+const SECBLURB={
+  technology:'The systems underneath Indian food and retail — pricing engines, dark-store software, demand forecasting, and the AI everyone is piloting but few are running.',
+  brands:'What Indians put in the trolley, who makes it, and the distribution fights that decide which brand takes the shelf.',
+  retail:'Store formats, quick commerce and the economics of getting a product into someone\'s hands in ten minutes.',
+  money:'Rounds, valuations and margins. We read the cap table, not the press release.',
+  trends:'The categories moving fastest, and an honest read on which are real.',
+  founders:'Operators on the decisions that shaped the business, including the ones that did not work.',
+  justin:'Everything Snackfax has published, newest first.'
+};
+const AUTHORS={
+  ra:{id:'ra',name:'Rhea Anand',role:'Retail & quick commerce',img:I('founder'),bio:'Six years covering Indian grocery retail. Before Snackfax, she tracked supply chains at a trade weekly.'},
+  km:{id:'km',name:'Kabir Mehta',role:'Brands & consumer',img:I('founder2'),bio:'Writes about what Indians put in their trolley and why. Previously a category manager at an FMCG major.'},
+  sn:{id:'sn',name:'Simran Nair',role:'Money & deals',img:I('salad'),bio:'Follows the cheques — rounds, valuations and the unit economics behind them.'},
+  dv:{id:'dv',name:'Dev Iyer',role:'Technology',img:I('dark'),bio:'Covers the software layer: pricing engines, forecasting, and which AI pilots actually reached production.'}
+};
+
+const P=(...a)=>a;
+const STORIES=[
+ {id:'agentic-grocery',sec:'technology',tag:'TECHNOLOGY',t:'Zepto, BigBasket and Swiggy are all building shopping assistants. None will let one press buy.',
+  dek:'Three platforms outlined how far they will let an assistant go. Every one stopped at the same wall: who owns the order the machine got wrong.',
+  img:I('dark'),time:'8 min ago',read:'6 min read',fmt:'read',au:'dv',feat:1,
+  kp:['All three are piloting; none has an assistant placing unsupervised orders.','The blocker is returns liability, not model quality.','Reorder lists work. Discovery does not.'],
+  body:P('Every large grocery platform in India is now building some version of an agentic assistant, and every one has stopped at the same wall: nobody wants to own the order the machine got wrong.',
+   'The demos are good. Tell it you are cooking for six on Thursday and it builds a basket. In testing the baskets are sensible. The problem arrives at the doorstep, where a wrong substitution is not a model error — it is a refund, a rider, and a customer who now distrusts the app.',
+   'So live deployments are narrow. Reorder assistance works, because the assistant matches against what you already bought. Discovery does not, because the platform cannot defend a recommendation it cannot explain.',
+   'One head of product put it plainly: the assistant may fill the cart, but a human presses buy. Until the returns maths changes, that is where this sits.',
+   'Watch the substitution logic, not the chat interface. That is the part that decides whether any of this survives a Thursday evening.')},
+
+ {id:'pricing-engine',sec:'technology',tag:'TECHNOLOGY',t:'The pricing engine quietly running India\'s quick-commerce war',
+  dek:'Prices on the three big apps move several times a day, per dark store. Almost none of it is a person.',
+  img:I('aisle'),time:'4 hr ago',read:'7 min read',fmt:'read',au:'dv',
+  kp:['Prices reprice multiple times a day, per store.','Competitor scraping is continuous and mutual.','Margin floors are set per category, not per SKU.'],
+  body:P('The visible part of the price war is a ₹2 handling fee. The invisible part is a repricing system watching competitors continuously and moving prices per dark store, several times a day.',
+   'Each platform scrapes the others. All of them know this. A cut in one catchment propagates within the hour, which is why these wars escalate faster than anyone intends.',
+   'The guardrail is a margin floor set per category rather than per SKU, so a platform can go negative on onions if the basket recovers on staples.',
+   'That one design decision is why a price war can run six days without anybody technically approving a loss.')},
+
+ {id:'forecast-waste',sec:'technology',tag:'TECHNOLOGY',t:'Demand forecasting cut fresh waste by a third — at two companies out of nine',
+  dek:'The models work. Most deployments fail upstream of the model, in data nobody owns.',
+  img:I('salad'),time:'1 day ago',read:'5 min read',fmt:'read',au:'dv',
+  kp:['Two of nine deployments hit their waste target.','Failures trace to late inbound data, not model choice.','Override rights decide the outcome.'],
+  body:P('Nine companies told us they deployed demand forecasting on fresh. Two hit their waste-reduction target. The gap is not the model.',
+   'The failures share a pattern: inbound supply data entered late, manually, or not at all. A forecast fed yesterday\'s truck as though it arrived on time is confidently wrong.',
+   'The second pattern is override rights. Where store managers could freely override, they did — roughly 40% of the time — and waste stayed flat. Where an override needed a reason code, usage dropped and the numbers moved.',
+   'That is a management change wearing a technology badge.')},
+ {id:'zomato-burger',sec:'brands',tag:'JUST IN',t:'Zomato launches new burger brand across 10 cities',
+  dek:'The new brand will operate under a cloud kitchen model, starting with Bengaluru, Delhi and Mumbai.',
+  img:I('burger'),time:'2 min ago',read:'1 min read',fmt:'watch',dur:'42 sec',au:'km',feat:1,
+  kp:['10 cities at launch; Bengaluru, Delhi and Mumbai go first.','Cloud-kitchen only — no storefront capex.','Burgers are the second-fastest growing category on Zomato\'s own app this year.'],
+  body:P('Zomato is launching a burger brand of its own, built entirely on cloud kitchens, with 10 cities in the first phase. Bengaluru, Delhi and Mumbai open this month. The rest follow over the quarter.',
+   'The economics are the point. A dine-in burger chain spends on rent, fit-out and staff before it sells anything. A cloud kitchen riding on capacity the company already leases spends almost none of that, and the delivery rails are already owned.',
+   'Three people familiar with the plan say the brand will sit in the ₹180–260 band — above the QSR value menus, below the imported-patty specialists. That is deliberate. It is the band where orders on the app grew fastest last year and where no single chain has taken the category.',
+   'What it does not do is threaten McDonald\'s or Burger King directly. Those chains sell footfall and family occasions as much as food. The pressure lands instead on the mid-market: the 20-to-60-outlet regional chains that took delivery seriously late and are now paying commission on orders they used to own.',
+   'The open question is supply. A patty programme at this scale needs a cold chain that holds in July, and the company has not said who is making them.')},
+
+ {id:'zepto-store',sec:'retail',tag:'RETAIL',t:'Zepto\'s new store format is a bet on fresh produce',
+  dek:'Bigger floor, shorter aisles, and a cold chain built for 10-minute delivery.',
+  img:I('store'),time:'32 min ago',read:'2 min read',fmt:'watch',dur:'2:48',au:'ra',feat:1,
+  kp:['Store floor is roughly 2.5× the standard dark store.','Fresh produce moves from 4% of the basket to a target of 18%.','Only viable in catchments with 3,000+ daily orders.'],
+  body:P('The new Zepto format is bigger, colder and slower to build — and that is the whole idea. Fresh produce is the category that keeps a grocery customer coming back weekly rather than monthly, and it is the one quick commerce has been worst at.',
+   'Walk one and the difference is obvious. The aisles are shorter, so a picker\'s longest walk drops. A third of the floor is refrigerated, against almost none in a standard dark store. There is a sorting bench, which no dark store has, because produce arrives ungraded and leaves graded.',
+   'Company material puts fresh at about 4% of the current basket, with a target near 18%. That is not a nudge. It is a different business, with spoilage risk attached.',
+   'It only works in dense catchments. Below roughly 3,000 orders a day, the refrigeration and the extra staff do not pay for themselves, which is why this is a format for a few hundred locations, not a few thousand.')},
+
+ {id:'salad-42cr',sec:'money',tag:'MONEY',t:'Salad-based D2C brand raises ₹42 Cr in Series B',
+  dek:'Series B led by an existing investor. The chain is at 34 outlets and says it is contribution-positive in Bengaluru.',
+  img:I('salad'),time:'2 hr ago',read:'1 min read',fmt:'read',au:'sn',feat:1,
+  kp:['₹42 Cr, led by an existing investor.','34 outlets; contribution-positive in Bengaluru only.','Money goes to a second kitchen, not new cities.'],
+  body:P('A ₹42 crore Series B into a salad chain sounds like 2021. It is not. The round is led by an existing investor, at a flat-to-modest step up, and the money is earmarked for a second central kitchen rather than a land grab.',
+   'The chain is at 34 outlets. It says contribution margin is positive in Bengaluru and roughly breakeven in Hyderabad. Delhi is not mentioned, which usually means Delhi is not working yet.',
+   'Investors are back on food service, but only where the unit economics are already proven in at least one city. The days of funding a 60-city rollout off one good store are gone.')},
+
+ {id:'dmart-qc',sec:'retail',tag:'RETAIL',t:'DMart expands into quick commerce',
+  dek:'A Pune-only pilot, 2-hour slots, no 10-minute promise. Deliberately unflashy.',
+  img:I('aisle'),time:'3 hr ago',read:'1 min read',fmt:'read',au:'ra',
+  kp:['Pune only, 2-hour delivery slots.','No dark stores — it picks from existing shops.','Priced at shelf price, no delivery surcharge under ₹999.'],
+  body:P('DMart has started a quick-commerce pilot in Pune, and everything about it is designed to be boring. Two-hour slots, not ten minutes. Picking out of existing stores, not new dark stores. Shelf price, no surcharge above a ₹999 basket.',
+   'That is a real strategy, not timidity. DMart\'s entire advantage is cost. Ten-minute delivery destroys cost. A two-hour window lets one picker batch eight orders and keeps the promise inside what a store can already do.',
+   'If it works, the pressure on Blinkit and Instamart is not on speed. It is on price, in the weekly-stock-up basket where DMart has never been beaten.')},
+
+ {id:'protein-choc',sec:'trends',tag:'TRENDS',t:'Why protein chocolates are suddenly everywhere',
+  dek:'Nine launches in six months. Two of them from companies that made only whey a year ago.',
+  img:I('choc'),time:'5 hr ago',read:'1 min read',fmt:'read',au:'km',
+  kp:['Nine launches in six months.','Gym-channel distribution is the real asset, not the recipe.','Retail margins are roughly double a standard bar.'],
+  body:P('Nine protein chocolate launches in six months is not a trend, it is a queue. And most of them are not chocolate companies.',
+   'The reason is distribution. A whey brand already sells into 4,000 gyms and a handful of pharmacy chains. A bar at ₹99 with 10g of protein moves through that pipe without a single new conversation. The recipe is contract-manufactured.',
+   'Margins help. A standard ₹20 chocolate bar leaves a retailer a few rupees. A protein bar at ₹99 leaves several times that, and takes the same shelf space.',
+   'The thing to watch is repeat rate at month four. Novelty carries the first three.')},
+
+ {id:'yogabar-500',sec:'founders',tag:'FOUNDER TAKE',t:'From a home kitchen to 500 stores — the Yogabar journey',
+  dek:'The founder on saying no to modern trade for two years, and why that was the right call.',
+  img:I('founder2'),time:'6 hr ago',read:'3 min',fmt:'watch',dur:'3:12',au:'km',
+  kp:['Refused modern trade for the first two years.','Built on one SKU until it hit repeat targets.','Now at roughly 500 stores.'],
+  body:P('"We said no to every large-format retailer for two years," she says, which at the time read as either discipline or arrogance. It was discipline.',
+   'The argument: a shelf in modern trade costs listing fees, slotting and a returns liability, and it teaches you nothing about whether people actually want the product. A single SKU in 40 independent stores teaches you everything, at a fraction of the cost.',
+   'They held one SKU until repeat purchase cleared an internal bar. Only then did the range widen, and only then did the big chains get a yes.',
+   'Five hundred stores later, the sequencing is the lesson, not the number.')},
+
+ {id:'fssai-labels',sec:'policy',tag:'POLICY',t:'FSSAI tightens front-of-pack labelling rules',
+  dek:'Front-of-pack warnings move from voluntary to mandatory on a 2027 timeline.',
+  img:I('coffee'),time:'8 hr ago',read:'2 min read',fmt:'read',au:'ra',
+  kp:['Voluntary becomes mandatory, phased to 2027.','Sugar, salt and saturated fat thresholds tighten.','Reformulation windows are the real cost.'],
+  body:P('The change most companies will feel is not the label. It is the reformulation clock behind it.',
+   'Thresholds for sugar, salt and saturated fat tighten, and products above them carry a front-of-pack mark. Anyone who has reformulated a mass-market snack knows the honest timeline: 9 to 14 months for a recipe that survives consumer testing, longer if it changes the supply chain.',
+   'A 2027 deadline sounds distant. For a company with 60 SKUs above threshold, it is not.')},
+
+ {id:'matcha-crunch',sec:'global',tag:'GLOBAL',t:'Matcha shortage reaches Indian cafés',
+  dek:'Japanese supply is short; café menus are quietly repricing.',
+  img:I('matcha'),time:'9 hr ago',read:'1 min read',fmt:'watch',dur:'1:36',au:'km',
+  kp:['Ceremonial-grade landed cost up sharply this year.','Cafés are reformulating rather than repricing.','Substitution to Chinese and Indian-grown leaf is starting.'],
+  body:P('Matcha got popular faster than tencha can be grown, and tencha takes years. That is the whole story, and Indian cafés are now at the end of it.',
+   'Most are not raising the menu price. They are quietly moving from ceremonial to culinary grade, cutting the dose, or blending. The drink survives; the purists notice.',
+   'Some roasters are testing Chinese and Indian-grown leaf. It is not the same product, and everyone involved knows it.')},
+
+ {id:'blinkit-pause',sec:'breaking',tag:'BREAKING',t:'Blinkit pauses its 10-minute grocery pilot in two cities',
+  dek:'The company calls it a "route optimisation reset". Riders were being paid per trip on routes that could not be run.',
+  img:I('dark'),time:'11 hr ago',read:'1 min read',fmt:'read',au:'ra',
+  kp:['Two cities paused, not shut.','Rider pay structure is being reworked.','No change to the core 10-minute promise elsewhere.'],
+  body:P('A pause in two cities is not a retreat, but it is an admission. The routes being promised could not be run inside the window without either speeding or unpaid waiting, and both showed up in rider churn.',
+   'The company frames it as route optimisation. The fix on the table is a per-hour floor rather than pure per-trip pay in the affected zones.',
+   'The 10-minute promise elsewhere is unchanged, which tells you this is an operations problem in specific catchments, not a rethink of the model.')},
+
+ {id:'itc-protein',sec:'brands',tag:'BRANDS',t:'ITC to enter protein snacks category',
+  dek:'A distribution-first entry: the product is unremarkable, the shelf access is not.',
+  img:I('choc'),time:'12 min ago',read:'1 min read',fmt:'read',au:'km',
+  kp:['Launch through existing ITC distribution, not a new brand build.','Targets the ₹99–₹149 band.','Puts pressure on challenger brands\' only real moat.'],
+  body:P('When ITC enters a category, the product is rarely the news. The distribution is.',
+   'Challenger protein brands have spent four years building gym and pharmacy reach one conversation at a time. ITC has a route to about 6 million outlets already paid for. A comparable bar at ₹99 does not need to be better to hurt.',
+   'What the challengers still hold is credibility with the actual gym-going buyer, which is a small market that sets the taste for a much larger one.')},
+
+ {id:'zepto-farmley',sec:'brands',tag:'BRANDS',t:'Zepto partners with Farmley for private label range',
+  dek:'A dried-fruit range under Zepto\'s own brand, made by Farmley.',
+  img:I('salad'),time:'28 min ago',read:'1 min read',fmt:'read',au:'ra',
+  kp:['Private label, manufactured by Farmley.','Dried fruit is high margin and low spoilage — the obvious first category.','Brands on the platform now compete with their own contract manufacturer.'],
+  body:P('Dried fruit is the correct first private label for a quick-commerce platform: high margin, long shelf life, no cold chain, and the customer does not have a strong brand preference.',
+   'The awkward part is structural. Farmley sells its own branded range on the same app it now manufactures a competitor for. Every platform that has gone down this road has ended up in the same conversation about shelf placement and search ranking.',
+   'Expect the third-party brands to raise it long before the regulator does.')},
+
+ {id:'mcd-menu',sec:'brands',tag:'BRANDS',t:'McDonald\'s tests new menu in India',
+  dek:'A regional-flavour platform, tested in 40 outlets in the west.',
+  img:I('burger'),time:'2 hr ago',read:'1 min read',fmt:'read',au:'km',
+  kp:['40-outlet test in western India.','Regional flavour platform, not new formats.','Price band unchanged.'],
+  body:P('Forty outlets is a real test, not a PR launch. The platform is flavour-led rather than format-led — the same builds, different seasonings and sauces, which keeps kitchen complexity flat.',
+   'That constraint is the interesting part. Anything that adds a step to the line at lunch does not survive contact with a Saturday rush, so the winning items are almost always the ones that change nothing about assembly.')},
+
+ {id:'packaged-100bn',sec:'money',tag:'MONEY',t:'India\'s packaged food market to hit $100 Bn by 2030',
+  dek:'The headline number is fine. The mix underneath it is the story.',
+  img:I('aisle'),time:'1 hr ago',read:'2 min read',fmt:'listen',dur:'4:10',au:'sn',
+  kp:['$100 Bn by 2030 on the base case.','Growth is concentrated in ready-to-cook and healthier snacking.','Staples grow with population, not preference.'],
+  body:P('Every few months a new forecast puts Indian packaged food at $100 billion by 2030. Treat the headline as directional and read the mix.',
+   'Staples grow roughly with population and income. The interesting growth sits in ready-to-cook, chilled and what the decks call better-for-you snacking — categories where a new brand can actually take share because habits are not yet set.',
+   'For anyone allocating capital, the number that matters is not the market size. It is how much of the growth is available to a company that does not already own distribution.')},
+
+ {id:'iced-coffee',sec:'trends',tag:'TRENDING',t:'Why iced coffee is India\'s next big beverage bet',
+  dek:'Cold coffee stopped being a dessert and started being a daily drink.',
+  img:I('coffee'),time:'18 min ago',read:'1 min read',fmt:'watch',dur:'36 sec',au:'km',feat:1,
+  kp:['Cold formats now a third of café coffee volume in metros.','Ready-to-drink is growing faster than café.','Sugar levels are the category\'s medium-term risk.'],
+  body:P('Cold coffee in India used to be a milkshake with a coffee note, sold as a treat. The current version is closer to what the drink is elsewhere: less sugar, more coffee, bought on a weekday.',
+   'Cold formats are now around a third of café coffee volume in the metros, and ready-to-drink is growing faster still because it travels into general trade where a café never will.',
+   'The risk is the same one that caught flavoured yoghurt: the versions that sell fastest are the sweetest, and the labelling rules are moving the other way.')},
+
+ {id:'noodle-slump',sec:'products',tag:'PRODUCTS',t:'Instant noodle volumes fall 8% in Q2',
+  dek:'Not a health story. A price story.',
+  img:I('dark'),time:'1 day ago',read:'1 min read',fmt:'read',au:'sn',
+  kp:['Volumes down 8%, value roughly flat.','Pack sizes shrank before prices rose.','Rural is where the volume went.'],
+  body:P('Volumes down 8%, value roughly flat: that is a grammage story, not a wellness one. Packs got smaller before prices went up, and the shopper noticed on the second purchase rather than the first.',
+   'Most of the decline is rural, where the price per pack matters more than the price per gram, and where a ₹5 step is a real decision.')},
+
+ {id:'reliance-fresh',sec:'retail',tag:'RETAIL',t:'Reliance opens 50 new fresh stores this year',
+  dek:'Smaller footprint, produce-heavy, sited near the dense residential clusters quick commerce already serves.',
+  img:I('store'),time:'32 min ago',read:'1 min read',fmt:'read',au:'ra',
+  kp:['50 stores planned this year.','Smaller format than the earlier fresh stores.','Sited to double as fulfilment points.'],
+  body:P('The new fresh stores are smaller than the last generation and sited unusually close to each other in dense residential pockets. That is not a retail decision alone — those locations double as fulfilment points.',
+   'Run the same square footage twice, once as a shop and once as a picking node, and the rent maths changes completely. This is the quiet advantage incumbents have over pure-play dark store networks.')}
+];
+
+const SHORTS=[
+  {t:'Can Indian food brands really go global?',v:'3.2k views',d:'2:14',img:I('founder2')},
+  {t:'Why matcha is the new coffee',v:'5.6k views',d:'1:36',img:I('matcha')},
+  {t:'Inside Zepto\'s new store format',v:'8.1k views',d:'2:48',img:I('store')},
+  {t:'Healthy is the new tasty',v:'6.4k views',d:'3:12',img:I('salad')},
+  {t:'Live: FSSAI briefing on labelling',v:'2.1k watching',d:'',img:I('aisle'),live:1},
+  {t:'The ₹42 Cr salad round, in 50 sec',v:'4.8k views',d:'0:50',img:I('choc')},
+  {t:'What DMart is actually testing in Pune',v:'3.9k views',d:'1:12',img:I('dark')},
+  {t:'Zomato\'s burger brand, explained',v:'11.2k views',d:'0:42',img:I('burger')}
+];
+
+const PODS=[
+  {id:'brief',day:'MON 28 SEP',t:'The 5-minute brief',d:'Zomato\'s burger play, ITC goes protein, and the quick-commerce price war enters day six.',len:'5:12',secs:312,
+   chapters:[['Zomato\'s burger play, explained',0],['ITC goes protein',72],['The quick-commerce price war',168],['One number: $100 Bn',252]]},
+  {id:'fri',day:'FRI 25 SEP',t:'The 5-minute brief',d:'FSSAI\'s labelling timeline, the matcha crunch, and a salad chain that raised.',len:'4:48',secs:288,
+   chapters:[['FSSAI\'s 2027 clock',0],['Matcha runs short',90],['₹42 Cr into salads',190]]},
+  {id:'deep',day:'WEEKLY',t:'The Long Order — dark stores, honestly',d:'Twenty-two minutes on whether a dark store network can ever be profitable at 10 minutes.',len:'22:40',secs:1360,
+   chapters:[['The promise',0],['The rider maths',320],['What breaks at scale',760],['Who survives',1100]]}
+];
+
+const LIVE={t:'Quick-commerce price war, day 6',sum:'All three major players are under last week\'s basket price. Blinkit has cut handling fees twice in 48 hours.',
+  log:[['11:42','Blinkit drops its handling fee back to ₹2 in Delhi NCR.',1],
+       ['11:15','Instamart matches on 40 fast-moving SKUs, quietly.',0],
+       ['10:50','Zepto says the pricing is "promotional, not structural".',0],
+       ['10:02','Day 6 opens with all three players under last week\'s basket price.',0],
+       ['09:30','Overnight: two brands pull promo spend rather than fund the discount.',0]]};
+const LIVE_NEW=[['11:58','BigBasket enters with a ₹99 basket offer.',1],['12:06','A Blinkit exec: "We are not going below this."',0],['12:20','Zepto quietly restores the ₹4 handling fee in Mumbai.',1]];
+
+const ANSWERS={
+  'Why now?':['Cloud kitchens cut the cost of a new burger brand to roughly a fifth of a dine-in launch.','Zomato already owns the delivery rails, so distribution costs it nothing extra.','Burgers are the second-fastest growing order category on its own app this year.'],
+  'Who does this hurt?':['Mid-market burger chains with 20–60 outlets and no delivery-first economics.','Regional cloud kitchen operators renting capacity to aggregators.','Not McDonald\'s or Burger King yet — different price band.'],
+  'What are the numbers?':['10 cities at launch, Bengaluru, Delhi and Mumbai first.','Cloud-kitchen model, so no new storefront capex.','India packaged and prepared food is tracking to $100 Bn by 2030.'],
+  'What happens next?':['Watch for a private-label supply deal in the next two quarters.','Expect price-led promos on the app for the first 60 days.','If unit economics hold, tier-2 cities by mid-2027.']
+};
+
+/* ------------------------------------------------ STATE */
+const S={member:false, saved:new Set(), voted:{}, deck:0, deckSaved:0, route:{v:'home'}};
+const lockChip=()=>S.member?'':'<span class="lockchip">🔒 Member</span>';
+const byId=id=>STORIES.find(s=>s.id===id);
+const inSec=sec=>sec==='justin'?STORIES:STORIES.filter(s=>s.sec===sec);
+
+/* ------------------------------------------------ COMPONENTS */
+const storyCard=s=>`<button class="story" data-story="${s.id}" style="--img:url('${s.img}')">
+  <div class="ph"></div><div class="bd">
+    <div class="hrow"><span class="tag ${TAGC[s.tag]||''}">${s.tag}</span><span class="t">${s.time}</span></div>
+    <h3>${esc(s.t)}</h3>
+    <div class="foot"><span>${s.fmt==='watch'?'▶ Watch '+s.dur:s.fmt==='listen'?'🎧 Listen '+s.dur:'▤ '+s.read}</span>
+      ${lockChip()}<span class="bm ${S.saved.has(s.id)?'on':''}" data-save="${s.id}">🔖</span></div>
+  </div></button>`;
+const rowCard=s=>`<button class="rowcard" data-story="${s.id}">
+  <div class="tx"><span class="tag ${TAGC[s.tag]||''}">${s.tag}</span>
+   <h3>${esc(s.t)}</h3><p>${esc(s.dek)}</p>
+   <div class="mt">${s.time} · ${s.fmt==='watch'?'▶ '+s.dur:s.fmt==='listen'?'🎧 '+s.dur:s.read} · ${AUTHORS[s.au].name} ${S.member?'':'· <span class="lockchip">🔒 Member</span>'}</div></div>
+  <div class="th" style="--img:url('${s.img}')"></div></button>`;
+const sidebar=()=>`<aside>
+  <div class="side-card"><h3>Get food industry news, in your inbox.</h3><p>6.30am, weekdays. Free.</p>
+    <form class="mailrow" data-sub><input placeholder="Your email" type="email" required><button>→</button></form>
+    <p style="margin-top:10px;font-size:12px" data-submsg></p></div>
+  <div class="wa"><h3>💬 Join our WhatsApp Channel</h3><p>Real-time food & retail updates on your phone.</p>
+    <button class="jn">Join Now</button></div>
+  <div class="fmt" style="margin-top:16px;padding:16px"><div class="lbl">MOST READ TODAY</div>
+    <ol style="margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.75;color:var(--ink-2)">
+    ${['dmart-qc','matcha-crunch','zepto-store','yogabar-500','itc-protein'].map(id=>`<li><button data-story="${id}">${esc(byId(id).t)}</button></li>`).join('')}
+    </ol></div></aside>`;
+const pollBlock=(id,q,opts)=>`<div class="fmt poll ${S.voted[id]?'voted':''}" data-poll="${id}" style="margin:0">
+  <div class="lbl">READER PULSE</div><h2 style="font-size:19px">${q}</h2><p class="sub">One tap. Results are live.</p>
+  ${opts.map(o=>`<button class="opt" data-p="${o[1]}"><div class="fill" style="width:${S.voted[id]?o[1]+'%':'0'}"></div><span>${o[0]}</span><span class="pct">${o[1]}%</span></button>`).join('')}
+  <div class="tot">${S.voted[id]?'4,183 votes • you voted':'4,182 votes'}</div></div>`;
+const askBlock=()=>`<div class="fmt"><div class="lbl">ASK SNACKFAX</div>
+  <h2>Ask this story a question</h2><p class="sub">Answers only from what Snackfax has reported, with the sources shown.</p>
+  <div class="ask"><div class="q" data-ask>${Object.keys(ANSWERS).map(q=>`<button>${q}</button>`).join('')}</div>
+  <div class="ans" data-ansbox><span style="color:var(--ink-3);font-size:13.5px">Pick a question, or type your own.</span></div></div></div>`;
+const briefBlock=p=>`<div class="fmt" data-player="${p.id}">
+  <div class="lbl">DAILY AUDIO</div><h2>${esc(p.t)}</h2><p class="sub">${esc(p.d)}</p>
+  <div class="brief"><div class="art">${p.day.replace(' ','<br>')}</div>
+   <div class="mid"><div style="font-weight:700;font-size:15px" data-chapnow>${p.chapters[0][0]}</div>
+    <div class="wave" data-wave></div>
+    <div class="ctrls"><button class="pp" data-pp>▶</button><span data-tcur>0:00</span> / <span>${p.len}</span>
+      <button class="speed" data-spd>1.0×</button><span style="margin-left:auto">🎧 12.4k listens today</span></div>
+    <div class="chapters" data-chaps>${p.chapters.map((c,i)=>`<button class="${i?'':'on'}">${c[0]}</button>`).join('')}</div>
+   </div></div></div>`;
+const footerHTML=()=>`<footer><div class="wrap cols4">
+  <div><button class="logo" style="color:#fff" data-go="home">SNACKFAX<small style="color:#8b93a4">FOOD. BRANDS. RETAIL. NOW.</small></button>
+   <p style="max-width:34ch;margin-top:14px">Food, brands and retail in India — reported fast, in the formats people actually use.</p></div>
+  <div><h5>Sections</h5><ul>${['brands','retail','money','trends'].map(x=>`<li><button data-go="section:${x}">${SECTIONS.find(s=>s.id===x).name}</button></li>`).join('')}</ul></div>
+  <div><h5>Formats</h5><ul><li><button data-go="shorts">Shorts</button></li><li><button data-go="podcasts">Audio brief</button></li><li><button data-go="live">Live files</button></li><li><button data-go="subscribe">Newsletters</button></li></ul></div>
+  <div><h5>Company</h5><ul><li><button data-go="about">About</button></li><li><button data-go="about">Advertise</button></li><li><button data-go="about">Contact</button></li><li><button data-go="about">Careers</button></li></ul></div>
+</div></footer>`;
+
+/* ------------------------------------------------ VIEWS */
+const V={};
+
+V.home=()=>{
+  const feat=STORIES.filter(s=>s.feat);
+  const [h,...rest]=feat;
+  return `<div class="wrap">
+  <section class="hero">
+    <button class="big" data-story="${h.id}" id="heroBig" style="--img:url('${h.img}')">
+      <div class="toprow"><span class="tag">${h.tag}</span><span class="stamp">🕐 ${h.time}</span></div>
+      <h1>${esc(h.t)}</h1><p>${esc(h.dek)}</p>
+      <div><span class="play"><i>${h.fmt==='watch'?'▶':h.fmt==='listen'?'◎':'▤'}</i> ${h.fmt==='watch'?'Watch '+h.dur:h.fmt==='listen'?'Listen '+h.dur:h.read}</span></div>
+      <div class="dots" id="heroDots">${feat.map((_,i)=>`<b class="${i?'':'on'}"></b>`).join('')}</div>
+    </button>
+    <div class="stack">${rest.slice(0,3).map(s=>`
+      <button class="mini" data-story="${s.id}" style="--img:url('${s.img}')">
+        <div class="row"><span class="tag ${TAGC[s.tag]||''}">${s.tag}</span><span class="pill-time">${s.time}</span></div>
+        <h3>${esc(s.t)}</h3>
+        <div class="meta"><i>${s.fmt==='watch'?'▶':'▤'}</i>${s.fmt==='watch'?s.dur:s.read}</div></button>`).join('')}
+    </div>
+    <div class="latest"><h4>⚡ Latest <span>View all →</span></h4>
+      <div class="feed" id="feedList"></div>
+      <button class="more" id="moreBtn">More updates →</button></div>
+  </section>
+
+  <div class="chips" id="chips">${CHIPS.map((c,i)=>`<button class="chip ${i?'':'on'}" data-chip="${c[0]}"><em>${c[2]}</em>${c[1]}</button>`).join('')}</div>
+
+  <div class="cols"><div>
+    <div class="sec-head" style="margin-top:0"><h2>Top Stories</h2><button class="all" data-go="section:justin">View all →</button></div>
+    <div class="grid4" id="stories">${STORIES.slice(2,6).map(storyCard).join('')}</div>
+
+    ${briefBlock(PODS[0])}
+
+    <div class="ad-inline"><div class="lb">Advertisement</div>
+      <div class="unit">Sponsored placement — 560 × 90</div></div>
+
+    <div class="fmt"><div class="lbl">VERTICAL</div><h2>Shorts <span class="freechip" style="vertical-align:4px">Free for everyone</span></h2>
+      <p class="sub">Scroll sideways, or <button style="color:var(--red);font-weight:700" data-go="shorts">open the full feed →</button></p>
+      <div class="reel">${SHORTS.map(s=>`<button class="short ${s.live?'live':''}" data-go="shorts" style="--img:url('${s.img}')">
+        ${s.d?`<span class="dur">${s.d}</span>`:''}<h4>${esc(s.t)}</h4><div class="st">${s.v}</div></button>`).join('')}</div></div>
+
+    ${askBlock()}
+
+    <div class="grid3" style="grid-template-columns:1.25fr .9fr;gap:20px">
+      <div class="fmt" style="margin:0"><div class="lbl">CATCH UP</div><h2>Swipe the day</h2>
+        <p class="sub">Six cards. Two minutes. Save the ones you want to read properly.</p>
+        <div class="deck" id="deck"></div>
+        <div class="deck-ctrl"><button id="skip">← Skip</button><button class="save" id="save">Save ♥</button></div>
+        <div style="text-align:center;font-size:12.5px;color:var(--ink-3);margin-top:10px" id="deckCount"></div></div>
+      ${pollBlock('p1','Will protein chocolate still be selling in 2027?',[['Yes, it\'s a category now',61],['No, pure fad',27],['Only for 2–3 brands',12]])}
+    </div>
+
+    <div class="fmt"><div class="lbl" style="display:flex;align-items:center;gap:8px">LIVE FILE <span class="livedot" style="font-size:10px"><i></i>LIVE</span></div>
+      <h2>${LIVE.t}</h2><p class="sub">New entries land at the top. <button style="color:var(--red);font-weight:700" data-go="live">Open the full file →</button></p>
+      <div class="live-log" id="liveLog"></div></div>
+
+    <div class="fmt"><div class="lbl">THE NUMBERS</div><h2>What moved this week</h2>
+      <p class="sub">The four figures worth carrying into your Monday call.</p>
+      <div class="nums">
+        <div class="num"><b>₹42 Cr <i class="up">▲</i></b><p>Series B into salad D2C brand</p></div>
+        <div class="num"><b>50 <i class="up">▲</i></b><p>New Reliance fresh stores planned</p></div>
+        <div class="num"><b>$100 Bn <i class="up">▲</i></b><p>India packaged food market by 2030</p></div>
+        <div class="num"><b>-8% <i class="dn">▼</i></b><p>Instant noodle volumes, Q2</p></div></div></div>
+
+    <div class="sec-head"><h2>Latest Videos</h2><button class="all" data-go="videos">View all →</button></div>
+    <div class="grid4">${SHORTS.slice(0,4).map(s=>`<button class="vid" data-go="videos" style="--img:url('${s.img}')">
+      <div class="ph">▶<span class="d">${s.d||'LIVE'}</span></div>
+      <div class="bd"><h4>${esc(s.t)}</h4><p>${s.v} · 4 hours ago</p></div></button>`).join('')}</div>
+  </div>${sidebar()}</div></div>${footerHTML()}`;
+};
+
+V.section=id=>{
+  const sec=SECTIONS.find(s=>s.id===id)||{id,name:id[0].toUpperCase()+id.slice(1)};
+  const list=inSec(id).length?inSec(id):STORIES;
+  const catRow=s=>`<button class="catrow" data-story="${s.id}">
+    <div><span class="tag ${TAGC[s.tag]||''}">${s.tag}</span> ${lockChip()}
+      <h3>${esc(s.t)}</h3>
+      <div class="by">By ${AUTHORS[s.au].name} &nbsp;<em>${s.time.toUpperCase()}</em></div>
+      <p class="dk">${esc(s.dek)}</p>
+      <span class="rf">Read full story ›</span></div>
+    <div class="th" style="--img:url('${s.img}')"></div></button>`;
+  return `<div class="wrap">
+    <div class="cat-hero"><h1>${sec.name} News</h1>
+      <p>${SECBLURB[id]||'Everything Snackfax has published in this section, newest first.'}</p></div>
+    <div style="text-align:center"><h2 class="cat-latest">The Latest</h2></div>
+    <div class="cols" style="margin-top:22px"><div>
+      ${list.map(catRow).join('')}
+      <div class="ad-inline"><div class="lb">Advertisement</div>
+        <div class="unit">Sponsored placement — 560 × 90</div></div>
+      <button class="more" data-go="section:${id}">Load more ${sec.name.toLowerCase()} stories</button>
+    </div>${sidebar()}</div></div>${footerHTML()}`;
+};
+
+V.story=id=>{
+  const s=byId(id)||STORIES[0], a=AUTHORS[s.au];
+  const rel=STORIES.filter(x=>x.id!==s.id&&(x.sec===s.sec||x.tag===s.tag)).slice(0,4);
+  const relFill=rel.length<4?rel.concat(STORIES.filter(x=>x.id!==s.id&&!rel.includes(x)).slice(0,4-rel.length)):rel;
+  return `<div class="wrap"><div class="art-wrap art">
+    <div class="crumb"><button data-go="home">Home</button> › <button data-go="section:${s.sec}">${(SECTIONS.find(x=>x.id===s.sec)||{name:s.tag}).name}</button></div>
+    <span class="tag ${TAGC[s.tag]||''}" style="margin-top:14px">${s.tag}</span>
+    <h1>${esc(s.t)}</h1><p class="dek">${esc(s.dek)}</p>
+    <div class="byline"><div class="av" style="--img:url('${a.img}')"></div>
+      <div><button class="nm" data-go="author:${a.id}">${a.name}</button><div>${s.time} · ${s.read}</div></div>
+      <div class="acts"><button data-save="${s.id}">${S.saved.has(s.id)?'🔖 Saved':'🔖 Save'}</button><button>↗ Share</button></div></div>
+    <div class="art-hero" style="--img:url('${s.img}')"></div>
+    <div class="listen"><button class="pp" data-fakeplay>▶</button><div><b>Listen to this story</b><span>${s.read.replace('read','')}· read by a human</span></div>
+      <button class="speed" style="margin-left:auto">1.0×</button></div>
+    <div class="keypoints"><h4>THE SHORT VERSION</h4><ul>${s.kp.map(k=>`<li>${esc(k)}</li>`).join('')}</ul></div>
+    ${(S.member?s.body:s.body.slice(0,2)).map((p,i)=>i===2?`<p class="body">${esc(p)}</p><div class="pullq">${esc(s.kp[1])}</div>`:`<p class="body">${esc(p)}</p>`).join('')}
+    ${S.member?'':`<div class="wallfade"></div>
+      <div class="wall"><span class="lockchip">🔒 Member exclusive</span>
+        <h3>The rest of this story is for members</h3>
+        <p class="s">Shorts stay free for everyone, always. Every written story, the daily brief and the live files are member-only.</p>
+        <div class="cta"><button class="primary" data-go="subscribe">See membership</button>
+          <button class="ghost" id="wallSign">I already have an account</button></div>
+        <div class="inc">
+          <div><b>Every story</b><span>Including the archive back to 2024.</span></div>
+          <div><b>The 5-minute brief</b><span>Chaptered audio, every weekday.</span></div>
+          <div><b>Live files</b><span>Rolling coverage while a story moves.</span></div></div>
+        <p class="note">Use the Signed out / Member switch in the grey bar to preview the unlocked view.</p></div>`}
+    ${S.member?askBlock():''}
+    ${pollBlock('ps-'+s.id,'Does this change anything for you?',[['Yes, actively watching it',48],['Interesting, not urgent',39],['No',13]])}
+    <div class="fmt" style="margin-top:20px"><div class="lbl">ABOUT THE REPORTER</div>
+      <div style="display:flex;gap:14px;align-items:center;margin-top:8px">
+        <div class="av" style="--img:url('${a.img}');width:52px;height:52px;border-radius:50%;background:var(--img) center/cover;background-color:#CDD2DA"></div>
+        <div><button style="font-weight:700;font-size:16px" data-go="author:${a.id}">${a.name}</button>
+        <div style="font-size:13px;color:var(--ink-3)">${a.role}</div></div></div>
+      <p style="margin:12px 0 0;font-size:14px;color:var(--ink-2)">${a.bio}</p></div>
+    <div class="sec-head"><h2>More on this</h2></div>
+    <div class="grid4">${relFill.map(storyCard).join('')}</div>
+    <div class="side-card" style="margin-top:24px"><h3>One email, 6.30am.</h3><p>The stories above, in 200 words, before your first meeting.</p>
+      <form class="mailrow" data-sub><input placeholder="Your email" type="email" required><button>→</button></form>
+      <p style="margin-top:10px;font-size:12px" data-submsg></p></div>
+  </div></div>${footerHTML()}`;
+};
+
+V.videos=()=>`<div class="wrap">
+  <div class="crumb"><button data-go="home">Home</button> › Videos</div>
+  <div class="sec-head" style="margin:10px 0 6px"><h2 style="font-size:34px">Videos</h2>
+    <button class="all" data-go="shorts">Vertical feed →</button></div>
+  <p style="color:var(--ink-3);margin:0 0 18px">Explainers, founder interviews and one live briefing.</p>
+  <div class="grid3">${SHORTS.map(s=>`<button class="vid" data-video="${esc(s.t)}" style="--img:url('${s.img}')">
+    <div class="ph">▶<span class="d">${s.d||'● LIVE'}</span></div>
+    <div class="bd"><h4>${esc(s.t)}</h4><p>${s.v} · today</p></div></button>`).join('')}</div>
+  </div>${footerHTML()}`;
+
+V.shorts=()=>`<div class="wrap" style="padding-top:14px">
+  <div class="crumb" style="padding-bottom:10px"><button data-go="home">Home</button> › Shorts</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+    <h1 style="font-size:32px;letter-spacing:-.02em;margin:0">Shorts</h1>
+    <span class="freechip">Free · no sign-in</span>
+    <p style="margin:0 0 0 auto;color:var(--ink-3);font-size:13.5px;max-width:44ch">Every short is open to everyone, always. Membership pays for the reporting behind them.</p></div>
+  <div class="shorts-page">${SHORTS.map(s=>`<div class="sp" style="--img:url('${s.img}')">
+    <div class="pr"><b></b></div>
+    <span class="tag k" style="align-self:flex-start">${s.live?'● LIVE':'SHORTS'}</span>
+    <h3>${esc(s.t)}</h3><p>${s.v}</p>
+    <div class="rail"><button><em>♥</em>2.1k</button><button><em>💬</em>84</button>
+      <button><em>🔖</em>Save</button><button><em>↗</em>Share</button></div></div>`).join('')}</div>
+  <p style="text-align:center;color:var(--ink-3);font-size:13px;margin-top:12px">Scroll inside the frame — it snaps, one story per screen.</p>
+  </div>`;
+
+V.podcasts=()=>`<div class="wrap">
+  <div class="crumb"><button data-go="home">Home</button> › Podcasts</div>
+  <div class="sec-head" style="margin:10px 0 6px"><h2 style="font-size:34px">Audio</h2></div>
+  <p style="color:var(--ink-3);margin:0 0 18px">A five-minute brief every weekday, and one long episode on Fridays.${S.member?'':' Chapter one is free on every episode.'}</p>
+  <div class="cols"><div>
+    ${briefBlock(PODS[0])}
+    <div class="sec-head" style="margin-top:6px"><h2>Earlier episodes</h2></div>
+    ${PODS.slice(1).map(p=>`<button class="ep" data-pod="${p.id}"><div class="cv">${p.day.replace(' ','<br>')}</div>
+      <div>${S.member?'':'<span class="lockchip">🔒 Member</span>'}<h3>${esc(p.t)}</h3><p>${esc(p.d)}</p><div class="mt">${p.len} · ${p.chapters.length} chapters</div></div>
+      <span class="go">▶ Play</span></button>`).join('')}
+  </div>${sidebar()}</div></div>${footerHTML()}`;
+
+V.live=()=>`<div class="wrap">
+  <div class="crumb"><button data-go="home">Home</button> › Live file</div>
+  <div class="cols"><div>
+    <div style="display:flex;align-items:center;gap:10px;margin:14px 0 6px"><span class="livedot"><i></i>LIVE</span>
+      <span style="font-size:13px;color:var(--ink-3)">Updating · 5 reporters</span></div>
+    <h1 style="font-size:34px;letter-spacing:-.025em;margin:0 0 10px">${LIVE.t}</h1>
+    <div class="keypoints"><h4>WHERE IT STANDS</h4><ul><li>${esc(LIVE.sum)}</li></ul></div>
+    ${S.member?`<div class="fmt"><div class="lbl">THE LOG</div><div class="live-log" id="liveLog"></div></div>
+      ${pollBlock('p2','Who blinks first?',[['Blinkit',41],['Zepto',33],['Instamart',26]])}`
+    :`<div class="fmt"><div class="lbl">THE LOG</div>
+       <div class="live-log" id="liveLog" style="max-height:150px;overflow:hidden"></div></div>
+      <div class="wallfade"></div>
+      <div class="wall"><span class="lockchip">🔒 Member exclusive</span>
+        <h3>Live files are a member feature</h3>
+        <p class="s">Rolling coverage runs for as long as the story moves. Members see every entry as it lands.</p>
+        <div class="cta"><button class="primary" data-go="subscribe">See membership</button>
+          <button class="ghost" id="wallSign">I already have an account</button></div></div>`}
+  </div>${sidebar()}</div></div>${footerHTML()}`;
+
+V.founders=()=>`<div class="wrap">
+  <div class="crumb"><button data-go="home">Home</button> › Founders</div>
+  <div class="sec-head" style="margin:10px 0 6px"><h2 style="font-size:34px">Founders</h2></div>
+  <p style="color:var(--ink-3);margin:0 0 18px">Interviews, in their words. Most run under four minutes.</p>
+  <div class="grid3" style="margin-bottom:24px">${Object.values(AUTHORS).map(a=>`
+    <button class="person" data-go="author:${a.id}"><div class="av" style="--img:url('${a.img}')"></div>
+      <h3>${a.name}</h3><div class="role">${a.role}</div><p>${a.bio}</p></button>`).join('')}</div>
+  ${inSec('founders').map(rowCard).join('')}
+  </div>${footerHTML()}`;
+
+V.author=id=>{
+  const a=AUTHORS[id]||AUTHORS.ra, list=STORIES.filter(s=>s.au===a.id);
+  return `<div class="wrap"><div class="art-wrap">
+    <div class="crumb"><button data-go="home">Home</button> › ${a.name}</div>
+    <div style="display:flex;gap:16px;align-items:center;margin:20px 0 6px">
+      <div style="width:72px;height:72px;border-radius:50%;background:url('${a.img}') center/cover;background-color:#CDD2DA"></div>
+      <div><h1 style="margin:0;font-size:30px;letter-spacing:-.02em">${a.name}</h1>
+        <div style="color:var(--ink-3)">${a.role}</div></div></div>
+    <p style="font-size:16px;color:var(--ink-2)">${a.bio}</p>
+    <div class="sec-head"><h2>${list.length} stories</h2></div>
+    ${list.map(rowCard).join('')}
+  </div></div>${footerHTML()}`;
+};
+
+V.saved=()=>{
+  const list=[...S.saved].map(byId).filter(Boolean);
+  return `<div class="wrap"><div class="art-wrap">
+    <div class="crumb"><button data-go="home">Home</button> › Saved</div>
+    <div class="sec-head" style="margin:10px 0 6px"><h2 style="font-size:34px">Saved</h2></div>
+    ${list.length?list.map(rowCard).join(''):
+      `<div class="fmt" style="text-align:center;padding:50px 20px"><h2>Nothing saved yet</h2>
+       <p class="sub">Tap the 🔖 on any story, or use Save on the swipe deck.</p>
+       <button class="btn-sub" data-go="home">Back to the homepage</button></div>`}
+  </div></div>${footerHTML()}`;
+};
+
+V.subscribe=()=>`<div class="wrap"><div class="art-wrap">
+  <div class="crumb"><button data-go="home">Home</button> › Newsletters</div>
+  <h1 style="font-size:36px;letter-spacing:-.025em;margin:16px 0 8px">Four emails. Pick the ones you want.</h1>
+  <p style="font-size:17px;color:var(--ink-2);margin:0 0 24px">All free. Unsubscribe from any of them in one click.</p>
+  ${[['The Daily Brief','6.30am, weekdays','Everything that moved overnight, in 200 words.'],
+     ['Retail Watch','Tuesdays','Store formats, quick commerce and what the shelf is telling us.'],
+     ['The Cheque','Thursdays','Rounds, valuations and the unit economics underneath them.'],
+     ['Long Order','Sundays','One deep piece. Usually about something breaking quietly.']]
+   .map(n=>`<label class="fmt" style="display:flex;gap:14px;align-items:flex-start;cursor:pointer;margin-bottom:12px">
+    <input type="checkbox" ${n[0]==='The Daily Brief'?'checked':''} style="margin-top:4px;width:18px;height:18px;accent-color:var(--red)">
+    <div><b style="font-size:17px">${n[0]}</b> <span style="color:var(--ink-3);font-size:13px">· ${n[1]}</span>
+      <p style="margin:4px 0 0;color:var(--ink-2);font-size:14px">${n[2]}</p></div></label>`).join('')}
+  <div class="side-card"><h3>Almost done.</h3><p>One email confirms it.</p>
+    <form class="mailrow" data-sub><input placeholder="Your email" type="email" required><button>→</button></form>
+    <p style="margin-top:10px;font-size:12px" data-submsg></p></div>
+  </div></div>${footerHTML()}`;
+
+V.about=()=>`<div class="wrap"><div class="art-wrap">
+  <div class="crumb"><button data-go="home">Home</button> › About</div>
+  <h1 style="font-size:36px;letter-spacing:-.025em;margin:16px 0 10px">What Snackfax is</h1>
+  <p class="body" style="font-size:18px">A newsroom covering food, brands and retail in India. Small team, fast metabolism, no press-release reprints.</p>
+  <p class="body">Most of what we publish is under 400 words, because most of what happens in this industry can be explained in under 400 words. When something genuinely needs 2,000, we write 2,000 and say why at the top.</p>
+  <h2 class="sub2">The formats</h2>
+  <p class="body">We publish the same reporting four ways — text, a 60-second vertical, a five-minute morning audio brief, and a live file when a story keeps moving for days. You pick. We do not make you read a video.</p>
+  <h2 class="sub2">Corrections</h2>
+  <p class="body">Every correction stays on the page with a timestamp. We do not quietly edit.</p>
+  <div class="grid3" style="margin-top:24px">${Object.values(AUTHORS).map(a=>`
+    <button class="person" data-go="author:${a.id}"><div class="av" style="--img:url('${a.img}')"></div>
+      <h3>${a.name}</h3><div class="role">${a.role}</div></button>`).join('')}</div>
+  </div></div>${footerHTML()}`;
+
+V.search=q=>{
+  const ql=(q||'').toLowerCase();
+  const res=ql?STORIES.filter(s=>(s.t+s.dek+s.tag+s.sec).toLowerCase().includes(ql)):[];
+  return `<div class="wrap"><div class="art-wrap">
+    <div class="crumb"><button data-go="home">Home</button> › Search</div>
+    <h1 style="font-size:30px;letter-spacing:-.02em;margin:16px 0 4px">“${esc(q)}”</h1>
+    <p style="color:var(--ink-3);margin:0 0 10px">${res.length} result${res.length===1?'':'s'}</p>
+    ${res.length?res.map(rowCard).join(''):`<div class="fmt" style="text-align:center;padding:44px 20px">
+      <h2>No match</h2><p class="sub">Try “quick commerce”, “protein”, “matcha” or “DMart”.</p></div>`}
+  </div></div>${footerHTML()}`;
+};
+
+/* ------------------------------------------------ ROUTER */
+function go(spec){
+  const [v,arg]=String(spec).split(':');
+  S.route={v,arg};
+  render();
+  const sc=document.body.classList.contains('m')?$('#phScroll'):window;
+  if(sc===window)window.scrollTo({top:0,behavior:'instant'}); else sc.scrollTop=0;
+}
+function render(){
+  const {v,arg}=S.route;
+  const html = v==='section'?V.section(arg) : v==='story'?V.story(arg) : v==='author'?V.author(arg)
+    : v==='search'?V.search(decodeURIComponent(arg||'')) : (V[v]||V.home)();
+  $('#app').innerHTML=html;
+  $$('#mainNav button').forEach(b=>b.classList.toggle('on', b.dataset.go===('section:'+arg) || (v==='home'&&b.dataset.go==='home') || b.dataset.go===v));
+  $$('#phNav button').forEach(b=>b.classList.toggle('on', b.dataset.go===v || (v==='home'&&b.dataset.go==='home')));
+  const sb=$('#signBtn'); if(sb)sb.textContent=S.member?'My account':'Sign In';
+  wire();
+}
+
+/* nav build */
+$('#mainNav').innerHTML=`<button data-go="home" class="on">Home</button>`+
+  SECTIONS.map(s=>`<button data-go="${['videos','podcasts'].includes(s.id)?s.id:'section:'+s.id}">${s.name}</button>`).join('')+
+  `<button data-go="shorts">Shorts<span class="fb">FREE</span></button>`;
+
+/* global click delegation */
+document.addEventListener('click',e=>{
+  const go_=e.target.closest('[data-go]'); const st=e.target.closest('[data-story]');
+  const sv=e.target.closest('[data-save]');
+  if(sv){e.stopPropagation();const id=sv.dataset.save;S.saved.has(id)?S.saved.delete(id):S.saved.add(id);render();return}
+  if(st){go('story:'+st.dataset.story);return}
+  if(go_){go(go_.dataset.go);return}
+  const vd=e.target.closest('[data-video]'); if(vd){openModal(`<h3>${esc(vd.dataset.video)}</h3>
+    <p class="s">Player is a placeholder in the prototype.</p>
+    <div style="height:210px;border-radius:12px;background:#111;display:grid;place-items:center;color:#fff;font-size:34px">▶</div>
+    <div style="margin-top:14px;display:flex;gap:8px"><button class="btn-sub" data-close>Close</button>
+      <button class="speed" data-go="shorts">Open vertical feed</button></div>`);}
+  const pd=e.target.closest('[data-pod]'); if(pd){const p=PODS.find(x=>x.id===pd.dataset.pod);
+    openModal(`<h3>${esc(p.t)}</h3><p class="s">${p.day} · ${p.len}</p>${briefBlock(p)}
+      <button class="btn-sub" data-close>Close</button>`); wire();}
+  if(e.target.closest('[data-close]')||e.target.classList.contains('overlay'))closeModal();
+});
+
+/* modal */
+function ovEl(){return document.body.classList.contains('m')?$('#ovM'):$('#ov')}
+function openModal(html){const o=ovEl();o.innerHTML=`<div class="modal">${html}</div>`;o.classList.add('on')}
+function closeModal(){$$('.overlay').forEach(o=>o.classList.remove('on'))}
+function openSearch(){
+  openModal(`<h3>Search Snackfax</h3><p class="s">Headlines, sections and reporters.</p>
+    <form class="srch" id="srchForm">🔍<input id="srchIn" placeholder="quick commerce, protein, DMart…" autofocus></form>
+    <div class="sug">${['quick commerce','protein','matcha','DMart','private label'].map(q=>
+      `<button data-go="search:${encodeURIComponent(q)}">${q}<span class="c">popular search</span></button>`).join('')}</div>`);
+  setTimeout(()=>{const f=$('#srchForm');if(f)f.onsubmit=ev=>{ev.preventDefault();go('search:'+encodeURIComponent($('#srchIn').value||''));closeModal()};$('#srchIn')?.focus()},30);
+}
+$('#openSearch').onclick=openSearch; $('#openSearchM').onclick=openSearch;
+
+/* ---- membership ---- */
+function setMember(v){S.member=v;$$('#memSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.mem==='1')===v))}
+$$('#memSeg button').forEach(b=>b.onclick=()=>{setMember(b.dataset.mem==='1');render()});
+function openSignIn(){
+  openModal(`<h3>Sign in</h3><p class="s">Members get every story, the daily brief and the live files.</p>
+    <input type="email" placeholder="Email" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 13px;margin-bottom:9px;outline:0">
+    <input type="password" placeholder="Password" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 13px;margin-bottom:9px;outline:0">
+    <button class="btn-sub" style="width:100%;text-align:center;padding:12px" id="siGo">Sign in</button>
+    <p style="text-align:center;margin:14px 0 0;font-size:13.5px;color:var(--ink-3)">
+      No account? <button style="color:var(--red);font-weight:700" data-go="subscribe">See membership</button></p>`);
+  setTimeout(()=>{const b=$('#siGo');if(b)b.onclick=()=>{setMember(true);closeModal();render()}},20);
+}
+function openAccount(){
+  openModal(`<h3>Your membership</h3><p class="s">Member · ₹499/month · renews 29 Oct 2026</p>
+    <div style="border:1px solid var(--line);border-radius:10px;padding:16px;font-size:14px;color:var(--ink-2)">
+      <b style="color:var(--ink)">Included</b><br>Every story · the daily brief · live files · full archive</div>
+    <button class="btn-sub" style="width:100%;text-align:center;padding:12px;margin-top:14px" id="soGo">Sign out</button>`);
+  setTimeout(()=>{const b=$('#soGo');if(b)b.onclick=()=>{setMember(false);closeModal();render()}},20);
+}
+document.addEventListener('click',e=>{
+  if(e.target.id==='signBtn'||e.target.id==='wallSign'){S.member?openAccount():openSignIn()}
+});
+
+/* ------------------------------------------------ PER-RENDER WIRING */
+function wire(){
+  /* latest feed */
+  const feedEl=$('#feedList');
+  if(feedEl){
+    const list=STORIES.slice(0,5);
+    const draw=arr=>feedEl.innerHTML=arr.map((s,i)=>`<button class="it ${i?'':'new'}" data-story="${s.id}"><time>${s.time}</time><p>${esc(s.t)}</p></button>`).join('');
+    draw(list);
+    $('#moreBtn').onclick=e=>{draw(STORIES.slice(0,9));e.target.textContent="That's everything for now";e.target.disabled=true};
+  }
+  /* chips */
+  $$('[data-chip]').forEach(c=>c.onclick=()=>{
+    $$('[data-chip]').forEach(x=>x.classList.remove('on'));c.classList.add('on');
+    const k=c.dataset.chip;
+    const list=k==='all'?STORIES.slice(2,6):STORIES.filter(s=>s.sec===k||s.tag.toLowerCase()===k);
+    $('#stories').innerHTML=(list.length?list:STORIES.slice(2,6)).slice(0,4).map(storyCard).join('');
+  });
+  /* ask */
+  $$('[data-ask] button').forEach(b=>b.onclick=()=>{
+    const box=b.closest('.ask').querySelector('[data-ansbox]');
+    box.innerHTML=`<div class="typing"><b></b><b></b><b></b></div>`;
+    setTimeout(()=>{box.innerHTML=`<div class="k">ANSWERED FROM SNACKFAX REPORTING</div><b>${b.textContent}</b>
+      <ul>${ANSWERS[b.textContent].map(x=>`<li>${x}</li>`).join('')}</ul>
+      <div class="src">Sources: 3 Snackfax stories, 28 Sep · <u>see them</u></div>`},650);
+  });
+  /* polls */
+  $$('[data-poll]').forEach(root=>{
+    const id=root.dataset.poll;
+    $$('.opt',root).forEach(o=>o.onclick=()=>{
+      if(S.voted[id])return; S.voted[id]=1; root.classList.add('voted');
+      $$('.opt',root).forEach(x=>x.querySelector('.fill').style.width=x.dataset.p+'%');
+      o.style.borderColor='var(--red)';
+      const t=root.querySelector('.tot'); if(t)t.textContent='4,183 votes • you voted';
+    });
+  });
+  /* players */
+  $$('[data-player]').forEach(root=>initPlayer(root));
+  /* swipe deck */
+  const deck=$('#deck'); if(deck)initDeck();
+  /* live log */
+  if($('#liveLog'))drawLog();
+  /* subscribe forms */
+  $$('[data-sub]').forEach(f=>f.onsubmit=e=>{e.preventDefault();
+    const m=f.parentElement.querySelector('[data-submsg]'); if(m)m.textContent="You're in. First brief lands tomorrow 6.30am.";
+    f.reset();});
+  $$('.wa .jn').forEach(b=>b.onclick=()=>{b.textContent='Joined ✓';b.style.color='var(--ink-3)'});
+  $$('[data-fakeplay]').forEach(b=>b.onclick=()=>{b.textContent=b.textContent==='▶'?'❚❚':'▶'});
+  /* hero rotation only on home */
+  if($('#heroBig'))startHero();
+}
+
+/* audio player */
+const timers=[];
+function initPlayer(root){
+  const p=PODS.find(x=>x.id===root.dataset.player)||PODS[0];
+  const wave=root.querySelector('[data-wave')||root.querySelector('[data-wave]');
+  const BARS=52;
+  wave.innerHTML=Array.from({length:BARS},()=>`<b style="height:${18+Math.random()*82}%"></b>`).join('');
+  let t=0,playing=false,spd=1;
+  const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  const paint=()=>{
+    const pr=t/p.secs; $$('b',wave).forEach((b,i)=>b.classList.toggle('p',i/BARS<=pr));
+    root.querySelector('[data-tcur]').textContent=fmt(t);
+    let idx=0;p.chapters.forEach((c,i)=>{if(t>=c[1])idx=i});
+    root.querySelector('[data-chapnow]').textContent=p.chapters[idx][0];
+    $$('[data-chaps] button',root).forEach((b,i)=>b.classList.toggle('on',i===idx));
+  };
+  paint();
+  root.querySelector('[data-pp]').onclick=e=>{playing=!playing;e.currentTarget.textContent=playing?'❚❚':'▶'};
+  root.querySelector('[data-spd]').onclick=e=>{spd=spd===1?1.5:spd===1.5?2:1;e.currentTarget.textContent=spd.toFixed(1)+'×'};
+  $$('[data-chaps] button',root).forEach((b,i)=>b.onclick=()=>{t=p.chapters[i][1];paint()});
+  wave.onclick=e=>{const r=wave.getBoundingClientRect();t=Math.round((e.clientX-r.left)/r.width*p.secs);paint()};
+  timers.push(setInterval(()=>{if(playing){t=Math.min(p.secs,t+spd);paint();if(t>=p.secs){playing=false;root.querySelector('[data-pp]').textContent='▶'}}},1000));
+}
+
+/* swipe deck */
+const CARDS=['salad-42cr','dmart-qc','protein-choc','fssai-labels','matcha-crunch','zepto-farmley'].map(byId);
+function initDeck(){
+  const draw=()=>{
+    const d=$('#deck'); if(!d)return;
+    const slice=CARDS.slice(S.deck,S.deck+3);
+    d.innerHTML=slice.length?slice.slice().reverse().map((c,n,arr)=>{
+      const depth=arr.length-1-n;
+      return `<div class="sw" style="transform:translateY(${depth*10}px) scale(${1-depth*.04});opacity:${depth>1?.5:1};z-index:${10-depth}">
+        <span class="tag ${TAGC[c.tag]||''}" style="align-self:flex-start">${c.tag}</span>
+        <h3>${esc(c.t)}</h3><p>${esc(c.dek)}</p><div class="n">${S.deck+1} of ${CARDS.length}</div></div>`}).join('')
+      : `<div class="sw" style="align-items:center;justify-content:center;text-align:center">
+         <h3>Done for today</h3><p>${S.deckSaved} saved to read properly.</p>
+         <div class="n" style="margin-top:14px"><button class="btn-sub" data-go="saved">Open saved →</button></div></div>`;
+    const c=$('#deckCount'); if(c)c.textContent=S.deckSaved?`${S.deckSaved} saved`:'Swipe or use the buttons';
+  };
+  draw();
+  $('#skip').onclick=()=>{if(S.deck<CARDS.length){S.deck++;draw()}};
+  $('#save').onclick=()=>{if(S.deck<CARDS.length){S.saved.add(CARDS[S.deck].id);S.deck++;S.deckSaved++;draw()}};
+}
+
+/* live log */
+let liveExtra=0;
+function drawLog(){
+  const el=$('#liveLog'); if(!el)return;
+  el.innerHTML=LIVE.log.map((e,i)=>`<div class="e ${e[2]?'hot':''} ${i===0&&e[3]?'fresh':''}"><time>${e[0]}</time><p>${esc(e[1])}</p></div>`).join('');
+}
+setInterval(()=>{
+  if(liveExtra<LIVE_NEW.length){LIVE.log.unshift([...LIVE_NEW[liveExtra++],1]);LIVE.log[0][3]=1;drawLog()}
+},9000);
+
+/* hero rotation */
+let heroTimer=null,hi=0;
+function startHero(){
+  clearInterval(heroTimer);
+  const feat=STORIES.filter(s=>s.feat);
+  heroTimer=setInterval(()=>{
+    const el=$('#heroBig'); if(!el){clearInterval(heroTimer);return}
+    hi=(hi+1)%feat.length; const s=feat[hi];
+    el.style.setProperty('--img',`url('${s.img}')`);
+    el.dataset.story=s.id;
+    el.querySelector('h1').textContent=s.t; el.querySelector('p').textContent=s.dek;
+    const pl=el.querySelector('.play');
+    if(pl)pl.innerHTML=`<i>${s.fmt==='watch'?'▶':s.fmt==='listen'?'◎':'▤'}</i> ${s.fmt==='watch'?'Watch '+s.dur:s.fmt==='listen'?'Listen '+s.dur:s.read}`;
+    el.querySelector('.tag').textContent=s.tag; el.querySelector('.stamp').textContent='🕐 '+s.time;
+    $$('#heroDots b').forEach((b,n)=>b.classList.toggle('on',n===hi));
+  },6000);
+}
+
+/* ticker */
+const TK=[['ITC','to enter protein snacks category','itc-protein'],['Zepto','partners with Farmley for private label','zepto-farmley'],
+  ['DMart','begins quick-commerce pilot in Pune','dmart-qc'],['McDonald\'s','tests a new India menu','mcd-menu'],
+  ['Blinkit','pauses 10-minute pilot in two cities','blinkit-pause']];
+$('#tk').innerHTML=TK.map((t,i)=>`<button class="${i?'':'on'}" data-story="${t[2]}"><b>${t[0]}</b> ${t[1]}</button>`).join('');
+let ti=0;
+setInterval(()=>{const s=$$('#tk button');s[ti].classList.remove('on');ti=(ti+1)%s.length;s[ti].classList.add('on')},3200);
+
+/* reading progress */
+const onScroll=el=>{
+  const top=el===window?window.scrollY:el.scrollTop;
+  const h=el===window?document.body.scrollHeight-innerHeight:el.scrollHeight-el.clientHeight;
+  $('#prog').style.width=Math.min(100,Math.max(0,top/(h||1)*100))+'%';
+};
+window.addEventListener('scroll',()=>onScroll(window));
+
+/* view toggle — moves the same app between shells */
+$$('#viewSeg button').forEach(b=>b.onclick=()=>{
+  $$('#viewSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const mobile=b.dataset.v==='m';
+  document.body.classList.toggle('m',mobile);
+  (mobile?$('#phScroll'):$('#appSlot')).appendChild($('#app'));
+  if(mobile)$('#phScroll').addEventListener('scroll',()=>onScroll($('#phScroll')));
+  window.scrollTo(0,0); render();
+});
+
+/* boot */
+$('#appSlot').appendChild($('#app'));
+go('home');
+</script>
+</body>
+</html>
